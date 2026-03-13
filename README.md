@@ -76,7 +76,7 @@ Também aceita arquivos CSV previamente exportados pela própria ferramenta.
 
 ---
 
-## 🚀 Como usar
+## Como usar
 
 1. Abra o sistema no navegador
 2. Clique em **Carregar Arquivo**
