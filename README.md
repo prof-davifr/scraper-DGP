@@ -1,10 +1,10 @@
-# Coletor DGP – IFBA
+# Coletor DGP
 
 Sistema web para **extração automatizada de dados do Diretório de Grupos de Pesquisa (DGP)** do CNPq.
 
 A ferramenta permite carregar uma lista de **IDs de grupos de pesquisa**, realizar a **varredura automática das páginas públicas do DGP**, extrair informações relevantes e **exportar os resultados em CSV**.
 
-Projeto desenvolvido no **Instituto Federal da Bahia (IFBA)**.
+Projeto desenvolvido para apoiar instituições no monitoramento de grupos de pesquisa do DGP/CNPq.
 
 ---
 
@@ -120,7 +120,6 @@ A aplicação roda **100% no navegador**, sem necessidade de backend.
 ## Autor
 
 **Davi Franco Rego**
-Professor – Instituto Federal da Bahia (IFBA)
 
 ---
 
