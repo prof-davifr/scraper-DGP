@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coletor-DGP</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="assets/styles.css">
+
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-text">
+                <h1 id="appName">Coletor-DGP</h1>
+                <p id="appSubtitle">Sistema de Extração de Dados DGP/CNPq</p>
+            </div>
+            <div class="logo-badge" id="appLogoText" aria-label="Logotipo da aplicação">DGP</div>
+        </div>
+
+        <div class="glass-panel">
+            <div class="controls">
+                <div class="input-group">
+                    <label>Base de Dados (TXT/CSV)</label>
+                    <label class="file-upload-btn" id="fileLabel">
+                        <input type="file" id="fileInput" accept=".txt,.csv">
+                        📁 Carregar Arquivo
+                    </label>
+                </div>
+
+
+
+
+                <button id="startBtn" class="btn" disabled title="Iniciar a extração">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Iniciar Varredura
+                </button>
+
+                <button id="stopBtn" class="btn" style="background:#ef4444; color:white; display:none;"
+                    title="Interromper imediatamente">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                    Parar
+                </button>
+
+                <button id="retryAllBtn" class="btn btn-retry">
+                    🔄 Retentar Falhas
+                </button>
+
+                <button id="exportBtn" class="btn btn-success" disabled>
+                    📥 Exportar CSV
+                </button>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="chkLimit" checked>
+                <label for="chkLimit">Executar apenas nos primeiros 20 grupos (Modo Teste)</label>
+            </div>
+
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-text">
+                    <span id="progressText">Pronto... 0 de 0</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div id="logText" style="margin-top: 0.5rem; font-size: 0.75rem; color: white; opacity: 0.8;">Aguardando
+                    início...</div>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table id="resultsTable">
+                <thead>
+                    <tr>
+                        <th style="text-align:center;">Op.</th>
+                        <th>ID Grupo</th>
+                        <th>Data Coleta</th>
+                        <th>Nome</th>
+                        <th>Situação</th>
+                        <th>Líder</th>
+                        <th>Vice-Líder</th>
+                        <th>Último Envio</th>
+                        <th>Formação</th>
+                        <th>Área</th>
+                        <th>Unidade</th>
+                        <th>Contato</th>
+                        <th style="text-align:center;">Pq.</th>
+                        <th style="text-align:center;">Es.</th>
+                        <th style="text-align:center;">Té.</th>
+                        <th style="text-align:center;">IP.</th>
+                        <th style="text-align:center;">IN.</th>
+                        <th>Pesquisadores (Nomes)</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody">
+                    <!-- Dinâmico -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+        <script src="assets/app.js" defer></script>
+
+</body>
+
+</html>
