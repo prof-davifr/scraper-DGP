@@ -1,1043 +1,255 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coletor-DGP | IFBA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0c741e;
-            --glass-bg: rgba(255, 255, 255, 0.15);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.8);
-            --accent: #fcd34d;
-            /* Yellow for highlights */
-            --accent-hover: #fbbf24;
-            --success: #34d399;
-            --error: #fca5a5;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            background-image:
-                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 40%);
-            color: var(--text-primary);
-            min-height: 100vh;
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 1400px;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            width: 100%;
-        }
-
-        .header-text h1 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            margin-bottom: 0.25rem;
-        }
-
-        .header-text p {
-            color: var(--text-secondary);
-            font-weight: 300;
-        }
-
-        .logo-ifba {
-            height: 80px;
-            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
-        }
-
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-        }
-
-        .controls {
-            display: flex;
-            gap: 1.25rem;
-            align-items: flex-end;
-            flex-wrap: wrap;
-        }
-
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .input-group label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .file-upload-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px dashed var(--glass-border);
-            padding: 0.75rem 1.25rem;
-            border-radius: 10px;
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-
-        .file-upload-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            border-color: var(--accent);
-        }
-
-        .btn {
-            background: var(--accent);
-            color: #064e3b;
-            border: none;
-            padding: 0.75rem 1.25rem;
-            border-radius: 10px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .btn:hover {
-            background: var(--accent-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn:disabled {
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.4);
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-success {
-            background: #ffffff;
-            color: #0c741e;
-        }
-
-        .btn-retry {
-            background: #f87171;
-            color: white;
-            display: none;
-        }
-
-        .progress-container {
-            margin-top: 1.5rem;
-            display: none;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            overflow: hidden;
-            margin-top: 0.5rem;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent), #ffffff);
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .progress-text {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        /* Sticky Header Table Style */
-        .table-wrapper {
-            max-height: 60vh;
-            overflow-y: auto;
-            border-radius: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--glass-border);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            text-align: left;
-        }
-
-        thead th {
-            padding: 1rem;
-            background: #ffffff;
-            color: #0c741e;
-            font-weight: 700;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            border-bottom: 2px solid #0c741e;
-        }
-
-        tbody td {
-            padding: 0.875rem 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        tbody tr:hover td {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .status-badge {
-            padding: 0.25rem 0.6rem;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            font-weight: 700;
-        }
-
-        .status-excluido {
-            background: rgba(239, 68, 68, 0.3);
-            color: #fee2e2;
-        }
-
-        .status-certificado {
-            background: rgba(52, 211, 153, 0.3);
-            color: #d1fae5;
-        }
-
-        .status-error {
-            background: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            cursor: help;
-        }
-
-        .btn-mini {
-            padding: 0.3rem 0.5rem;
-            font-size: 0.7rem;
-            border-radius: 4px;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-top: 1rem;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        select,
-        input[type="number"] {
-            padding: 0.75rem;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid var(--glass-border);
-            font-size: 0.9rem;
-            outline: none;
-        }
-
-        select option {
-            background: var(--bg-color);
-        }
-
-        .terminal-container {
-            margin-top: 1rem;
-        }
-
-        .terminal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .terminal-title {
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-        }
-
-        .terminal-clear-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--glass-border);
-            color: white;
-            padding: 0.25rem 0.5rem;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .terminal-clear-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        #terminal {
-            background: #0a0e0a;
-            border-radius: 8px;
-            padding: 1rem;
-            height: 200px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.75rem;
-            line-height: 1.4;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .terminal-line {
-            margin-bottom: 0.25rem;
-        }
-
-        .terminal-error {
-            color: #fca5a5;
-        }
-
-        .terminal-success {
-            color: #34d399;
-        }
-
-        .terminal-warning {
-            color: #fcd34d;
-        }
-
-        .terminal-info {
-            color: #93c5fd;
-        }
-
-        .terminal-time {
-            color: rgba(255, 255, 255, 0.4);
-            margin-right: 0.5rem;
-        }
-
-        #terminal::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        #terminal::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 3px;
-        }
-
-        #terminal::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-        }
-    </style>
+    <link rel="stylesheet" href="assets/styles.css">
 </head>
-
 <body>
 
-    <div class="container">
-        <div class="header">
-            <div class="header-text">
-                <h1>Coletor-DGP</h1>
-                <p>Sistema de Extração de Dados DGP/CNPq</p>
-            </div>
-        </div>
-        <div id="pagesBadge" style="display:none; background: rgba(52, 211, 153, 0.2); color: #34d399; padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.8rem; margin-bottom: 1rem; border: 1px solid rgba(52, 211, 153, 0.3); align-items: center; gap: 0.5rem;">
-            <span>🌐</span> <strong>GitHub Pages Mode</strong> - CORS Origin configurada.
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="copyToast" class="copy-toast" role="status" aria-live="polite"></div>
 
-        <div class="glass-panel">
+    <div class="container">
+
+        <header class="header">
+            <div class="header-text">
+                <h1 id="appName">Coletor-DGP</h1>
+                <p id="appSubtitle">Sistema de Extração de Dados DGP/CNPq</p>
+            </div>
+            <img src="data:image/png;base64,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" class="logo-ifba" alt="IFBA" id="appLogo">
+        </header>
+
+        <div id="pagesBadge" style="display:none;">
+            <span>&#127760;</span> <strong>GitHub Pages Mode</strong> &ndash; CORS Origin configurada.
+        </div>
+
+        <nav class="steps-indicator" aria-label="Progresso da tarefa">
+            <div class="step active" id="step1">
+                <div class="step-num">1</div>
+                <span class="step-label">Carregar Arquivo</span>
+            </div>
+            <span class="step-arrow" aria-hidden="true">&rarr;</span>
+            <div class="step" id="step2">
+                <div class="step-num">2</div>
+                <span class="step-label">Configurar</span>
+            </div>
+            <span class="step-arrow" aria-hidden="true">&rarr;</span>
+            <div class="step" id="step3">
+                <div class="step-num">3</div>
+                <span class="step-label">Iniciar Varredura</span>
+            </div>
+            <span class="step-arrow" aria-hidden="true">&rarr;</span>
+            <div class="step" id="step4">
+                <div class="step-num">4</div>
+                <span class="step-label">Exportar</span>
+            </div>
+        </nav>
+
+        <main class="glass-panel">
+
             <div class="controls">
                 <div class="input-group">
-                    <label>Base de Dados (TXT/CSV)</label>
-                    <label class="file-upload-btn" id="fileLabel">
-                        <input type="file" id="fileInput" accept=".txt,.csv">
-                        📁 Carregar Arquivo
-                    </label>
+                    <label for="fileInput">Base de Dados (TXT/CSV)</label>
+                    <div class="drop-zone" id="dropZone" role="button" tabindex="0"
+                         aria-label="&#193;rea de upload: arraste um arquivo .TXT ou .CSV, ou clique para selecionar">
+                        <input type="file" id="fileInput" accept=".txt,.csv"
+                               aria-label="Selecionar arquivo TXT ou CSV">
+                        <span class="drop-zone-icon">&#128193;</span>
+                        <div class="drop-zone-text">
+                            Arraste um arquivo <strong>.TXT</strong> ou <strong>.CSV</strong> aqui<br>
+                            <small>ou clique para selecionar</small>
+                        </div>
+                    </div>
+                    <div id="fileInfo" class="file-info hidden">
+                        <span id="fileName"></span>
+                        <button id="clearFileBtn" class="clear-file-btn" type="button"
+                                aria-label="Remover arquivo selecionado">&#10005;</button>
+                    </div>
+                    <div id="fileFeedback" class="file-feedback" role="status" aria-live="polite"></div>
                 </div>
 
-
-
-
-                <button id="startBtn" class="btn" disabled title="Iniciar a extração">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button id="startBtn" class="btn" disabled
+                        title="Iniciar a extra&#231;&#227;o" aria-label="Iniciar varredura dos grupos">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                              d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
                     Iniciar Varredura
                 </button>
 
-                <button id="stopBtn" class="btn" style="background:#ef4444; color:white; display:none;"
-                    title="Interromper imediatamente">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                        </path>
+                <button id="stopBtn" class="btn btn-danger" style="display:none;"
+                        title="Interromper imediatamente" aria-label="Parar varredura">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                     Parar
                 </button>
 
-                <button id="retryAllBtn" class="btn btn-retry">
-                    🔄 Repetir Falhas
+                <button id="retryAllBtn" class="btn btn-retry"
+                        aria-label="Repetir todos os grupos que falharam">
+                    &#128260; Repetir Falhas
                 </button>
 
-                <button id="exportBtn" class="btn btn-success" disabled>
-                    📥 Exportar CSV
+                <button id="exportBtn" class="btn btn-success" disabled
+                        aria-label="Exportar todos os resultados em CSV">
+                    &#128229; Exportar CSV
+                </button>
+
+                <button id="exportErrorsBtn" class="btn btn-secondary" style="display:none;"
+                        aria-label="Exportar apenas grupos com erro em CSV">
+                    &#128229; Exportar Erros
                 </button>
             </div>
 
-            <div class="glass-panel" style="margin-top: 1rem;">
-                <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
-                    <div class="input-group" style="flex: 1; min-width: 300px;">
-                        <label>Proxy Personalizado (Opcional)</label>
-                        <input type="text" id="customProxyInput" placeholder="https://seu-proxy.com/?url="
-                            style="padding: 0.75rem; border-radius: 10px; background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--glass-border); font-size: 0.9rem; width: 100%; outline: none;"
-                            oninput="customProxy = this.value.trim()">
-                    </div>
-                    <div style="font-size: 0.7rem; color: var(--text-secondary); padding-bottom: 0.75rem;">
-                        Ordem: Personalizado → allorigins.win → thingproxy → corsproxy.io
-                    </div>
+            <div class="test-mode-row">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="chkLimit" checked
+                           aria-describedby="testModeDesc">
+                    <label for="chkLimit">Modo Teste (20 grupos)</label>
                 </div>
+                <span id="testModeBadge" class="test-mode-badge visible"
+                      aria-live="polite">
+                    &#9888;&#65039; Processando apenas os primeiros 20 grupos
+                </span>
+                <span id="testModeDesc" class="sr-only">
+                    Quando ativado, a varredura &eacute; limitada aos primeiros 20 grupos da lista.
+                </span>
             </div>
 
-            <div class="checkbox-group">
-                <input type="checkbox" id="chkLimit" checked>
-                <label for="chkLimit">Executar apenas nos primeiros 20 grupos (Modo Teste)</label>
-            </div>
+            <details class="advanced-config">
+                <summary>&#9881;&#65039; Configura&#231;&#245;es Avan&#231;adas</summary>
+                <div class="advanced-config-body">
+                    <div class="input-group">
+                        <label for="customProxyInput">Proxy Personalizado (Opcional)</label>
+                        <input type="text" id="customProxyInput"
+                               placeholder="https://seu-proxy.com/?url="
+                               aria-label="URL do proxy personalizado">
+                    </div>
+                    <p class="proxy-order-hint">
+                        Ordem de tentativa: Personalizado &rarr; allorigins.win &rarr; thingproxy &rarr; codetabs &rarr; corsproxy.io
+                    </p>
+                </div>
+            </details>
 
             <div class="progress-container" id="progressContainer">
                 <div class="progress-text">
-                    <span id="progressText">Pronto... 0 de 0</span>
+                    <span id="progressText">Pronto</span>
                     <span id="progressPercent">0%</span>
                 </div>
-                <div class="progress-bar">
+                <div class="progress-bar-track"
+                     id="progressBar"
+                     role="progressbar"
+                     aria-valuenow="0"
+                     aria-valuemin="0"
+                     aria-valuemax="100"
+                     aria-label="Progresso da varredura">
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
-                <div id="logText" style="margin-top: 0.5rem; font-size: 0.75rem; color: white; opacity: 0.8;">Aguardando
-                    início...</div>
+                <div id="logText" aria-live="polite">Aguardando in&iacute;cio...</div>
+                <div id="timerText" class="progress-meta" aria-live="polite"></div>
             </div>
-        </div>
+
+        </main>
+
+        <details class="help-details glass-panel">
+            <summary>&#10067; Como usar</summary>
+            <div class="help-steps">
+                <div class="help-step">
+                    <div class="help-step-num">1</div>
+                    <div>Clique em <strong>Carregar Arquivo</strong> (ou arraste) e envie um arquivo <code>.txt</code> ou <code>.csv</code> com os IDs dos grupos.</div>
+                </div>
+                <div class="help-step">
+                    <div class="help-step-num">2</div>
+                    <div>Configure o <strong>Modo Teste</strong> e, se necess&aacute;rio, um proxy personalizado em <em>Configura&ccedil;&otilde;es Avan&ccedil;adas</em>.</div>
+                </div>
+                <div class="help-step">
+                    <div class="help-step-num">3</div>
+                    <div>Clique em <strong>Iniciar Varredura</strong> e aguarde a coleta dos dados. Voc&ecirc; pode acompanhar o progresso no Terminal de Log.</div>
+                </div>
+                <div class="help-step">
+                    <div class="help-step-num">4</div>
+                    <div>Clique em <strong>Exportar CSV</strong> para baixar os resultados. Use <em>Exportar Erros</em> para reprocessar grupos com falha.</div>
+                </div>
+            </div>
+        </details>
 
         <div class="glass-panel terminal-container">
             <div class="terminal-header">
-                <span class="terminal-title">📟 Terminal de Log</span>
-                <button class="terminal-clear-btn" onclick="clearTerminal()">Limpar</button>
+                <span class="terminal-title">&#128287; Terminal de Log</span>
+                <button class="terminal-clear-btn" onclick="clearTerminal()" type="button"
+                        aria-label="Limpar terminal de log">Limpar</button>
             </div>
-            <div id="terminal"></div>
+            <div id="terminal" role="log" aria-label="Log de execu&#231;&#227;o" aria-live="off"></div>
         </div>
 
-        <div class="table-wrapper">
+        <div class="stats-bar" role="status" aria-label="Resumo da coleta" aria-live="polite">
+            <span class="stat-chip stat-chip-waiting" id="statsWaiting">&#128241; 0 Aguardando</span>
+            <span class="stat-chip stat-chip-success" id="statsSuccess">&#9989; 0 Coletados</span>
+            <span class="stat-chip stat-chip-error"   id="statsError">&#10060; 0 com Erro</span>
+            <span class="stat-chip stat-chip-total"   id="statsTotal">&#128202; Total: 0</span>
+        </div>
+
+        <div class="table-toolbar">
+            <div class="table-search-wrap">
+                <input id="tableSearch" type="search"
+                       placeholder="Filtrar por ID, nome, l&iacute;der, &aacute;rea..."
+                       aria-label="Filtrar grupos na tabela">
+                <button id="searchClearBtn" class="search-clear-btn" type="button"
+                        aria-label="Limpar filtro">&#10005;</button>
+            </div>
+            <span id="tableCount" aria-live="polite">Nenhum grupo carregado</span>
+        </div>
+
+        <div class="table-wrapper" role="region" aria-label="Resultados da coleta">
             <table id="resultsTable">
                 <thead>
                     <tr>
-                        <th style="text-align:center;">Op.</th>
-                        <th>ID Grupo</th>
-                        <th>Data Coleta</th>
-                        <th>Nome</th>
-                        <th>Situação</th>
-                        <th>Líder</th>
-                        <th>Vice-Líder</th>
-                        <th>Último Envio</th>
-                        <th>Formação</th>
-                        <th>Área</th>
-                        <th>Unidade</th>
-                        <th>Contato</th>
-                        <th style="text-align:center;">Pq.</th>
-                        <th style="text-align:center;">Es.</th>
-                        <th style="text-align:center;">Té.</th>
-                        <th style="text-align:center;">IP.</th>
-                        <th style="text-align:center;">IN.</th>
-                        <th>Pesquisadores (Nomes)</th>
+                        <th style="text-align:center;" title="Opera&#231;&#245;es disponíveis por linha">Op.</th>
+                        <th onclick="sortTable(1)">ID Grupo <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(2)">Data Coleta <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(3)">Nome <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(4)">Situa&#231;&#227;o <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(5)">L&iacute;der <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(6)">Vice-L&iacute;der <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(7)">&Uacute;ltimo Envio <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(8)">Forma&#231;&#227;o <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(9)">&Aacute;rea <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(10)">Unidade <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(11)">Contato <span class="sort-indicator">&#8645;</span></th>
+                        <th style="text-align:center;" onclick="sortTable(12)"><abbr title="Pesquisadores">Pq.</abbr> <span class="sort-indicator">&#8645;</span></th>
+                        <th style="text-align:center;" onclick="sortTable(13)"><abbr title="Estudantes">Es.</abbr> <span class="sort-indicator">&#8645;</span></th>
+                        <th style="text-align:center;" onclick="sortTable(14)"><abbr title="T&eacute;cnicos">T&eacute;.</abbr> <span class="sort-indicator">&#8645;</span></th>
+                        <th style="text-align:center;" onclick="sortTable(15)"><abbr title="Institui&#231;&#245;es Parceiras">IP.</abbr> <span class="sort-indicator">&#8645;</span></th>
+                        <th style="text-align:center;" onclick="sortTable(16)"><abbr title="INCTs Parceiras">IN.</abbr> <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(17)">Pesquisadores (Nomes) <span class="sort-indicator">&#8645;</span></th>
                     </tr>
                 </thead>
                 <tbody id="resultsBody">
-                    <!-- Dinâmico -->
+                    <tr id="emptyStateRow" class="empty-state-row">
+                        <td colspan="18">
+                            <span class="empty-state-icon">&#128203;</span>
+                            <p class="empty-state-text">Nenhum dado carregado.</p>
+                            <p class="empty-state-hint">Envie um arquivo TXT ou CSV para come&#231;ar.</p>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
+
     </div>
 
     <script>
-        let currentGroups = [];
-        let resultsMap = new Map(); // ID -> Data
-        let isRunning = false;
-
-        const fileInput = document.getElementById('fileInput');
-        const fileLabel = document.getElementById('fileLabel');
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const retryAllBtn = document.getElementById('retryAllBtn');
-        const exportBtn = document.getElementById('exportBtn');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressText = document.getElementById('progressText');
-        const progressPercent = document.getElementById('progressPercent');
-        const progressFill = document.getElementById('progressFill');
-        const logText = document.getElementById('logText');
-        const resultsBody = document.getElementById('resultsBody');
-
-        function addLog(message, type = 'info') {
-            const terminal = document.getElementById('terminal');
-            const time = new Date().toLocaleTimeString('pt-BR');
-            const line = document.createElement('div');
-            line.className = 'terminal-line';
-            line.innerHTML = `<span class="terminal-time">[${time}]</span><span class="terminal-${type}">${message}</span>`;
-            terminal.appendChild(line);
-            terminal.scrollTop = terminal.scrollHeight;
-        }
-
-        function clearTerminal() {
-            document.getElementById('terminal').innerHTML = '';
-        }
-
-        // Initial log message
-        window.addEventListener('load', () => {
-            addLog('Terminal inicializado. Aguardando arquivo...', 'info');
-            if (window.location.hostname.includes('github.io')) {
-                document.getElementById('pagesBadge').style.display = 'inline-flex';
-            }
-        });
-
-        const proxyList = [
-            'https://api.allorigins.win/raw?url=',    
-            'https://thingproxy.freeboard.io/fetch/',   
-            'https://api.codetabs.com/v1/proxy?url=',
-            'https://corsproxy.io/?'                   
-        ];
-        
-        // Check for file:// protocol
-        if (window.location.protocol === 'file:') {
-            window.addEventListener('load', () => {
-                addLog('⚠️ Executando via file://. CORS pode falhar (Origin null).', 'warning');
-                addLog('💡 Dica: Use um servidor local ou hospede no GitHub Pages.', 'info');
-            });
-        } else if (window.location.hostname.includes('github.io')) {
-            window.addEventListener('load', () => {
-                addLog('🚀 Rodando no GitHub Pages! Origem configurada corretamente.', 'success');
-            });
-        }
-        let customProxy = '';
-        const delayMsInput = null; // removed
-
-        const chkLimit = document.getElementById('chkLimit');
-
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                fileLabel.textContent = file.name;
-                const reader = new FileReader();
-                reader.onload = (e) => parseInput(e.target.result);
-                reader.readAsText(file);
-            }
-        });
-
-        function parseInput(text) {
-            const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-            if (lines.length === 0) return;
-
-            currentGroups = [];
-            resultsMap.clear();
-            resultsBody.innerHTML = '';
-
-            const firstLine = lines[0].toLowerCase();
-            const isCSV = firstLine.includes('id,') || firstLine.includes('nome base');
-
-            if (isCSV) {
-                parseCSV(lines);
-            } else {
-                parseTXT(lines);
-            }
-
-            logText.textContent = `${currentGroups.length} grupos carregados.`;
-            addLog(`${currentGroups.length} grupos carregados.`, 'info');
-            startBtn.disabled = currentGroups.length === 0;
-            updateUIState(false);
-        }
-
-        function parseTXT(lines) {
-            for (let line of lines) {
-                const parts = line.split('\t');
-                if (parts.length >= 1) {
-                    const id = parts[0].trim();
-                    const nome = parts[1] ? parts[1].trim() : "N/A";
-                    if (/^\d{16}$/.test(id)) {
-                        const group = { id, nome };
-                        currentGroups.push(group);
-                        const initialData = createWaitingData(group);
-                        resultsMap.set(id, initialData);
-                        updateOrAddRow(initialData);
-                    }
-                }
-            }
-        }
-
-        function parseCSV(lines) {
-            // Simple CSV parser for our exported format (headers, quotes, commas)
-            const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
-            const idIdx = headers.indexOf('ID');
-            const nomeIdx = headers.indexOf('Nome Base');
-            const dataColetaIdx = headers.indexOf('Data Coleta');
-            const situacaoIdx = headers.indexOf('Situação');
-            const liderIdx = headers.indexOf('Líder');
-            const viceIdx = headers.indexOf('Vice-Líder');
-            const envioIdx = headers.indexOf('Último Envio');
-            const formacaoIdx = headers.indexOf('Ano Formação');
-            const areaIdx = headers.indexOf('Área');
-            const instIdx = headers.indexOf('Instituição');
-            const unidadeIdx = headers.indexOf('Unidade');
-            const contatoIdx = headers.indexOf('Contato');
-            const pqIdx = headers.indexOf('Pesquisadores');
-            const nomesIdx = headers.indexOf('Pesquisadores (Nomes)');
-            const esIdx = headers.indexOf('Estudantes');
-            const teIdx = headers.indexOf('Técnicos');
-            const ipIdx = headers.indexOf('Instituições Parceiras');
-            const inIdx = headers.indexOf('INCTs Parceiras');
-
-            for (let i = 1; i < lines.length; i++) {
-                const parts = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-                if (!parts || parts.length < 2) continue;
-
-                const clean = (idx) => (idx !== -1 && parts[idx]) ? parts[idx].replace(/^"|"$/g, '').replace(/""/g, '"').trim() : 'N/A';
-
-                const id = clean(idIdx);
-                if (!/^\d{16}$/.test(id)) continue;
-
-                const data = {
-                    id: id,
-                    nomeInformado: clean(nomeIdx),
-                    dataColeta: clean(dataColetaIdx),
-                    situacao: clean(situacaoIdx),
-                    lider: clean(liderIdx),
-                    viceLider: clean(viceIdx),
-                    ultimoEnvio: clean(envioIdx),
-                    anoFormacao: clean(formacaoIdx),
-                    area: clean(areaIdx),
-                    instituicao: clean(instIdx),
-                    unidade: clean(unidadeIdx),
-                    contato: clean(contatoIdx),
-                    pesquisadores: parseInt(clean(pqIdx)) || 0,
-                    pesquisadoresNomes: clean(nomesIdx),
-                    estudantes: parseInt(clean(esIdx)) || 0,
-                    tecnicos: parseInt(clean(teIdx)) || 0,
-                    instParceiras: parseInt(clean(ipIdx)) || 0,
-                    inctsParceiras: parseInt(clean(inIdx)) || 0,
-                    error: clean(situacaoIdx).includes('⚠️')
-                };
-
-                currentGroups.push({ id: data.id, nome: data.nomeInformado });
-                resultsMap.set(id, data);
-                updateOrAddRow(data);
-            }
-        }
-
-        startBtn.addEventListener('click', () => runScraper(currentGroups));
-        stopBtn.addEventListener('click', () => {
-            isRunning = false;
-            logText.textContent = "Interrupção solicitada pelo usuário...";
-            addLog("Interrupção solicitada pelo usuário.", 'warning');
-            stopBtn.disabled = true;
-        });
-        retryAllBtn.addEventListener('click', () => {
-            const failedIds = Array.from(resultsMap.values())
-                .filter(d => d.error)
-                .map(d => ({ id: d.id, nome: d.nomeInformado }));
-            runScraper(failedIds);
-        });
-
-        async function runScraper(groups) {
-            if (isRunning) return;
-
-            let list = [...groups];
-            if (chkLimit.checked && list.length > 20 && groups === currentGroups) {
-                list = list.slice(0, 20);
-                addLog(`Modo teste: processando apenas 20 grupos.`, 'warning');
-            }
-
-            if (list.length === 0) return;
-
-            isRunning = true;
-            updateUIState(true);
-            addLog(`Iniciando varredura de ${list.length} grupos...`, 'info');
-
-            const total = list.length;
-            let current = 0;
-
-            for (const group of list) {
-                if (!isRunning) break;
-                current++;
-                updateProgress(current, total, `Extraindo: ${group.id}`);
-                addLog(`[${current}/${total}] Extraindo: ${group.nome} (${group.id})`, 'info');
-
-                try {
-                    const data = await fetchGroupData(group.id);
-                    const usedFallback = data._usedFallback;
-                    delete data._usedFallback;
-                    data.id = group.id;
-                    data.nomeInformado = group.nome;
-                    data.dataColeta = new Date().toLocaleString('pt-BR');
-                    data.error = false;
-                    resultsMap.set(group.id, data);
-                    updateOrAddRow(data);
-                    addLog(`[${current}/${total}] Sucesso: ${group.nome}`, 'success');
-                    if (current < total) {
-                        await new Promise(r => setTimeout(r, usedFallback ? 3000 : 1500));
-                    }
-                } catch (e) {
-                    const errorData = createErrorData(group, e.message);
-                    resultsMap.set(group.id, errorData);
-                    updateOrAddRow(errorData);
-                    addLog(`[${current}/${total}] Erro em ${group.nome}: ${e.message}`, 'error');
-                    if (current < total) {
-                        await new Promise(r => setTimeout(r, 1500));
-                    }
-                }
-            }
-
-            isRunning = false;
-            updateUIState(false);
-            addLog(`Varredura concluída.`, 'success');
-            checkFailures();
-        }
-
-        async function fetchGroupData(id) {
-            const targetUrl = `http://dgp.cnpq.br/dgp/espelhogrupo/${id}`;
-            let lastError = null;
-
-            // Build dynamic proxy list with custom proxy first if provided
-            const allProxies = customProxy
-                ? [customProxy, ...proxyList]
-                : proxyList;
-
-            for (const [proxyIndex, proxy] of allProxies.entries()) {
-                try {
-                    // Determine proxy name dynamically
-                    const proxyName = proxy.includes('allorigins') ? 'allorigins.win'
-                        : proxy.includes('thingproxy') ? 'thingproxy'
-                        : proxy.includes('corsproxy') ? 'corsproxy.io'
-                        : 'custom';
-                    addLog(`Tentando proxy ${proxyName} para ${id}...`, 'info');
-                    const url = proxy + encodeURIComponent(targetUrl);
-                    const resp = await fetch(url, { signal: AbortSignal.timeout(10000) });
-                    if (!resp.ok) throw new Error(`Status ${resp.status}`);
-                    const html = await resp.text();
-                    addLog(`Proxy ${proxyName} respondeu com sucesso.`, 'success');
-
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-
-                    const leaders = getLideresArray(doc);
-
-                    return {
-                        situacao: getFieldValue(doc, 'Situação do grupo:'),
-                        anoFormacao: getFieldValue(doc, 'Ano de formação:'),
-                        dataSituacao: getFieldValue(doc, 'Data da Situação:'),
-                        ultimoEnvio: getFieldValue(doc, 'Data do último envio:'),
-                        lider: leaders[0] || 'N/A',
-                        viceLider: leaders[1] || 'N/A',
-                        area: getFieldValue(doc, 'Área predominante:'),
-                        instituicao: getFieldValue(doc, 'Instituição do grupo:'),
-                        unidade: getUnidadeValue(doc),
-                        contato: getContatoGrupo(doc),
-                        ...getRHCounts(doc),
-                        pesquisadoresNomes: getResearcherNames(doc),
-                        instParceiras: getPartnershipCount(doc, 'Instituições parceiras'),
-                        inctsParceiras: getPartnershipCount(doc, 'INCTs parceiras'),
-                        _usedFallback: proxyIndex > 0
-                    };
-                } catch (e) {
-                    lastError = e;
-                    if (e.name === 'TypeError' && e.message.includes('fetch')) {
-                        addLog(`Proxy ${proxyName} falhou por CORS ou Rede. Verifique sua conexão ou use um servidor local.`, 'error');
-                    } else {
-                        addLog(`Proxy ${proxyName} falhou: ${e.message}`, 'error');
-                    }
-                    // try next proxy
-                }
-            }
-            throw lastError || new Error('Todos os proxies falharam');
-        }
-
-        function getUnidadeValue(doc) {
-            let val = getFieldValue(doc, 'Unidade:');
-            if (val.startsWith('IFBA - Campus ')) {
-                val = val.replace('IFBA - Campus ', '');
-            }
-            return val;
-        }
-
-        function getResearcherNames(doc) {
-            const spans = Array.from(doc.querySelectorAll('th span'));
-            const span = spans.find(s => s.textContent.trim() === 'Pesquisadores' && s.closest('table'));
-            if (!span) return 'N/A';
-
-            const table = span.closest('table');
-            const rows = table.querySelectorAll('tbody tr:not(.ui-datatable-empty-message)');
-            const names = Array.from(rows).map(row => {
-                const cell = row.querySelector('td');
-                return cell ? cell.textContent.trim() : '';
-            }).filter(n => n);
-
-            return names.join('; ');
-        }
-
-        function getFieldValue(doc, labelText) {
-            const labels = Array.from(doc.querySelectorAll('.control-label'));
-            const label = labels.find(l => l.textContent.trim().includes(labelText));
-            return label ? label.nextElementSibling.textContent.trim().replace(/\s+/g, ' ') : 'N/A';
-        }
-
-        function getLideresArray(doc) {
-            const labels = Array.from(doc.querySelectorAll('.control-label'));
-            const label = labels.find(l => l.textContent.trim().includes('Líder(es) do grupo:'));
-            if (!label) return [];
-
-            const controls = label.nextElementSibling.cloneNode(true);
-            // Removendo botões e scripts (contato individual protegido)
-            controls.querySelectorAll('button, script, div.ui-tooltip').forEach(e => e.remove());
-
-            return controls.innerHTML.split('<br>')
-                .map(t => {
-                    const temp = document.createElement('div');
-                    temp.innerHTML = t;
-                    return temp.textContent.trim().replace(/\s+/g, ' ');
-                })
-                .filter(t => t.length > 2);
-        }
-
-        function getContatoGrupo(doc) {
-            const labels = Array.from(doc.querySelectorAll('.control-label'));
-            const label = labels.find(l => l.textContent.trim().includes('Contato do grupo:'));
-            if (label) {
-                const controls = label.nextElementSibling;
-                const cfEmail = controls.querySelector('.__cf_email__');
-                if (cfEmail) {
-                    return decodeCloudflareEmail(cfEmail.getAttribute('data-cfemail'));
-                }
-                const a = controls.querySelector('a');
-                return a ? a.textContent.trim() : controls.textContent.trim();
-            }
-            return 'N/A';
-        }
-
-        function decodeCloudflareEmail(hex) {
-            let email = '';
-            const key = parseInt(hex.substr(0, 2), 16);
-            for (let i = 2; i < hex.length; i += 2) {
-                const charCode = parseInt(hex.substr(i, 2), 16) ^ key;
-                email += String.fromCharCode(charCode);
-            }
-            return email;
-        }
-
-        function getRHCounts(doc) {
-            const result = { pesquisadores: 0, estudantes: 0, tecnicos: 0 };
-            const legends = Array.from(doc.querySelectorAll('legend'));
-            const legend = legends.find(l => l.textContent.includes('Indicadores de recursos humanos'));
-            if (!legend) return result;
-
-            const table = legend.parentElement.querySelector('table');
-            if (!table) return result;
-
-            const rows = table.querySelectorAll('tbody tr:not(.ui-datatable-empty-message)');
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                if (cells.length >= 4) {
-                    result.pesquisadores += parseInt(cells[1].textContent.trim()) || 0;
-                    result.estudantes += parseInt(cells[2].textContent.trim()) || 0;
-                    result.tecnicos += parseInt(cells[3].textContent.trim()) || 0;
-                }
-            });
-            return result;
-        }
-
-        function getPartnershipCount(doc, legendText) {
-            const legends = Array.from(doc.querySelectorAll('legend'));
-            const legend = legends.find(l => l.textContent.includes(legendText));
-            if (!legend) return 0;
-            const table = legend.parentElement.querySelector('table');
-            if (!table) return 0;
-            const rows = table.querySelectorAll('tbody tr:not(.ui-datatable-empty-message)');
-            return rows.length;
-        }
-
-        function getRowCount(doc, header) {
-            const spans = Array.from(doc.querySelectorAll('th span.ui-column-title'));
-            const span = spans.find(s => s.textContent.trim() === header);
-            if (!span) return 0;
-            const table = span.closest('table');
-            const rows = table.querySelectorAll('tbody tr:not(.ui-datatable-empty-message)');
-            return rows.length;
-        }
-
-        function updateOrAddRow(data) {
-            let tr = document.getElementById(`row-${data.id}`);
-            if (!tr) {
-                tr = document.createElement('tr');
-                tr.id = `row-${data.id}`;
-                resultsBody.appendChild(tr);
-            }
-
-            const sClass = data.error ? 'status-error' : (data.situacao.toLowerCase().includes('excluído') ? 'status-excluido' : 'status-certificado');
-
-            tr.innerHTML = `
-                <td style="text-align:center;">
-                    <button class="btn btn-mini" onclick="retrySingle('${data.id}')" title="Recarregar este grupo">🔄</button>
-                </td>
-                <td><a href="http://dgp.cnpq.br/dgp/espelhogrupo/${data.id}" target="_blank" style="color:var(--accent);">${data.id}</a></td>
-                <td style="font-size:0.75rem; white-space:nowrap;">${(data.dataColeta || '-').split(',')[0].split(' ')[0]}</td>
-                <td title="${data.nomeInformado}">${truncate(data.nomeInformado, 25)}</td>
-                <td><span class="status-badge ${sClass}" title="${data.error ? data.situacao : ''}">${data.error ? '⚠️ ERRO' : data.situacao}</span></td>
-                <td>${data.lider}</td>
-                <td>${data.viceLider}</td>
-                <td>${data.ultimoEnvio}</td>
-                <td>${data.anoFormacao}</td>
-                <td title="${data.area}">${truncate(data.area, 15)}</td>
-                <td title="${data.unidade}">${truncate(data.unidade, 15)}</td>
-                <td>${data.contato}</td>
-                <td style="text-align:center;">${data.pesquisadores}</td>
-                <td style="text-align:center;">${data.estudantes}</td>
-                <td style="text-align:center;">${data.tecnicos}</td>
-                <td style="text-align:center;">${data.instParceiras}</td>
-                <td style="text-align:center;">${data.inctsParceiras}</td>
-                <td title="${data.pesquisadoresNomes}">${truncate(data.pesquisadoresNomes, 30)}</td>
-            `;
-        }
-
-        async function retrySingle(id) {
-            if (isRunning) return;
-            const entry = currentGroups.find(g => g.id === id);
-            if (!entry) return;
-
-            isRunning = true;
-            logText.textContent = `Recarregando ${id}...`;
-            addLog(`Recarregando: ${entry.nome} (${id})`, 'info');
-            try {
-                const data = await fetchGroupData(id);
-                data.id = id;
-                data.nomeInformado = entry.nome;
-                data.dataColeta = new Date().toLocaleString('pt-BR');
-                data.error = false;
-                resultsMap.set(id, data);
-                updateOrAddRow(data);
-                logText.textContent = `Sucesso: ${id}`;
-                addLog(`Sucesso ao recarregar: ${entry.nome}`, 'success');
-            } catch (e) {
-                logText.textContent = `Falha: ${id}`;
-                addLog(`Falha ao recarregar ${entry.nome}: ${e.message}`, 'error');
-            }
-            isRunning = false;
-            checkFailures();
-        }
-
-        function createErrorData(group, msg) {
-            return {
-                id: group.id,
-                nomeInformado: group.nome,
-                error: true,
-                situacao: msg,
-                anoFormacao: '?',
-                ultimoEnvio: '?',
-                lider: '?', viceLider: '?', area: '?', instituicao: '?', unidade: '?', contato: '?',
-                pesquisadores: 0, estudantes: 0, tecnicos: 0, instParceiras: 0, inctsParceiras: 0,
-                pesquisadoresNomes: '?',
-                dataColeta: '-'
-            };
-        }
-
-        function createWaitingData(group) {
-            return {
-                id: group.id,
-                nomeInformado: group.nome,
-                error: false,
-                situacao: 'Aguardando...',
-                anoFormacao: '-',
-                ultimoEnvio: '-',
-                lider: '-', viceLider: '-', area: '-', instituicao: '-', unidade: '-', contato: '-',
-                pesquisadores: 0, estudantes: 0, tecnicos: 0, instParceiras: 0, inctsParceiras: 0,
-                pesquisadoresNomes: '-',
-                dataColeta: '-'
-            };
-        }
-
-        function updateUIState(active) {
-            startBtn.disabled = active;
-            stopBtn.style.display = active ? 'inline-flex' : 'none';
-            stopBtn.disabled = false;
-            retryAllBtn.style.display = 'none';
-            exportBtn.disabled = active || resultsMap.size === 0;
-            progressContainer.style.display = 'block';
-        }
-
-        function checkFailures() {
-            const hasFailures = Array.from(resultsMap.values()).some(d => d.error);
-            retryAllBtn.style.display = hasFailures ? 'inline-flex' : 'none';
-        }
-
-        function updateProgress(curr, tot, msg) {
-            const p = Math.round((curr / tot) * 100);
-            progressText.textContent = `Processando: ${curr} de ${tot}`;
-            progressPercent.textContent = `${p}%`;
-            progressFill.style.width = `${p}%`;
-            logText.textContent = msg;
-        }
-
-        function truncate(str, n) { return str.length > n ? str.substr(0, n - 1) + '...' : str; }
-
-        exportBtn.addEventListener('click', () => {
-            const headers = ['ID', 'Data Coleta', 'Nome Base', 'Situação', 'Líder', 'Vice-Líder', 'Último Envio', 'Ano Formação', 'Área', 'Instituição', 'Unidade', 'Contato', 'Pesquisadores', 'Pesquisadores (Nomes)', 'Estudantes', 'Técnicos', 'Instituições Parceiras', 'INCTs Parceiras'];
-            const rows = [headers.join(',')];
-            resultsMap.forEach(r => {
-                const vals = [r.id, r.dataColeta, r.nomeInformado, r.situacao, r.lider, r.viceLider, r.ultimoEnvio, r.anoFormacao, r.area, r.instituicao, r.unidade, r.contato, r.pesquisadores, r.pesquisadoresNomes, r.estudantes, r.tecnicos, r.instParceiras, r.inctsParceiras];
-                rows.push(vals.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
-            });
-            const blob = new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = 'coletor_dgp_ifba.csv'; a.click();
-        });
+        window.APP_CONFIG = {
+            appName:   'Coletor-DGP',
+            subtitle:  'Sistema de Extração de Dados DGP/CNPq',
+            logoText:  'DGP',
+            pageTitle: 'Coletor-DGP | IFBA'
+        };
     </script>
+    <script src="assets/app.js"></script>
 </body>
-
 </html>
