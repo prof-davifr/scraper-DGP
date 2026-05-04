@@ -54,7 +54,7 @@
                 <div class="input-group">
                     <label for="fileInput">Base de Dados (TXT/CSV)</label>
                     <div class="drop-zone" id="dropZone" role="button" tabindex="0"
-                         aria-label="&#193;rea de upload: arraste um arquivo .TXT ou .CSV, ou clique para selecionar">
+                         aria-label="Área de upload: arraste um arquivo .TXT ou .CSV, ou clique para selecionar">
                         <input type="file" id="fileInput" accept=".txt,.csv"
                                aria-label="Selecionar arquivo TXT ou CSV">
                         <span class="drop-zone-icon">&#128193;</span>
@@ -72,7 +72,7 @@
                 </div>
 
                 <button id="startBtn" class="btn" disabled
-                        title="Iniciar a extra&#231;&#227;o" aria-label="Iniciar varredura dos grupos">
+                        title="Iniciar a extração" aria-label="Iniciar varredura dos grupos">
                     <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M13 10V3L4 14h7v7l9-11h-7z"/>
@@ -121,7 +121,7 @@
             </div>
 
             <details class="advanced-config">
-                <summary>&#9881;&#65039; Configura&#231;&#245;es Avan&#231;adas</summary>
+                <summary>&#9881;&#65039; Configuraç&#245;es Avançadas</summary>
                 <div class="advanced-config-body">
                     <div class="input-group">
                         <label for="customProxyInput">Proxy Personalizado (Opcional)</label>
@@ -183,7 +183,7 @@
                 <button class="terminal-clear-btn" onclick="clearTerminal()" type="button"
                         aria-label="Limpar terminal de log">Limpar</button>
             </div>
-            <div id="terminal" role="log" aria-label="Log de execu&#231;&#227;o" aria-live="off"></div>
+            <div id="terminal" role="log" aria-label="Log de execução" aria-live="off"></div>
         </div>
 
         <div class="stats-bar" role="status" aria-label="Resumo da coleta" aria-live="polite">
@@ -208,22 +208,22 @@
             <table id="resultsTable">
                 <thead>
                     <tr>
-                        <th style="text-align:center;" title="Opera&#231;&#245;es disponíveis por linha">Op.</th>
+                        <th style="text-align:center;" title="Operaç&#245;es disponíveis por linha">Op.</th>
                         <th onclick="sortTable(1)">ID Grupo <span class="sort-indicator">&#8645;</span></th>
                         <th onclick="sortTable(2)">Data Coleta <span class="sort-indicator">&#8645;</span></th>
                         <th onclick="sortTable(3)">Nome <span class="sort-indicator">&#8645;</span></th>
-                        <th onclick="sortTable(4)">Situa&#231;&#227;o <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(4)">Situação <span class="sort-indicator">&#8645;</span></th>
                         <th onclick="sortTable(5)">L&iacute;der <span class="sort-indicator">&#8645;</span></th>
                         <th onclick="sortTable(6)">Vice-L&iacute;der <span class="sort-indicator">&#8645;</span></th>
                         <th onclick="sortTable(7)">&Uacute;ltimo Envio <span class="sort-indicator">&#8645;</span></th>
-                        <th onclick="sortTable(8)">Forma&#231;&#227;o <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(8)">Formação <span class="sort-indicator">&#8645;</span></th>
                         <th onclick="sortTable(9)">&Aacute;rea <span class="sort-indicator">&#8645;</span></th>
                         <th onclick="sortTable(10)">Unidade <span class="sort-indicator">&#8645;</span></th>
                         <th onclick="sortTable(11)">Contato <span class="sort-indicator">&#8645;</span></th>
                         <th style="text-align:center;" onclick="sortTable(12)"><abbr title="Pesquisadores">Pq.</abbr> <span class="sort-indicator">&#8645;</span></th>
                         <th style="text-align:center;" onclick="sortTable(13)"><abbr title="Estudantes">Es.</abbr> <span class="sort-indicator">&#8645;</span></th>
                         <th style="text-align:center;" onclick="sortTable(14)"><abbr title="T&eacute;cnicos">T&eacute;.</abbr> <span class="sort-indicator">&#8645;</span></th>
-                        <th style="text-align:center;" onclick="sortTable(15)"><abbr title="Institui&#231;&#245;es Parceiras">IP.</abbr> <span class="sort-indicator">&#8645;</span></th>
+                        <th style="text-align:center;" onclick="sortTable(15)"><abbr title="Instituiç&#245;es Parceiras">IP.</abbr> <span class="sort-indicator">&#8645;</span></th>
                         <th style="text-align:center;" onclick="sortTable(16)"><abbr title="INCTs Parceiras">IN.</abbr> <span class="sort-indicator">&#8645;</span></th>
                         <th onclick="sortTable(17)">Pesquisadores (Nomes) <span class="sort-indicator">&#8645;</span></th>
                     </tr>
@@ -233,7 +233,7 @@
                         <td colspan="18">
                             <span class="empty-state-icon">&#128203;</span>
                             <p class="empty-state-text">Nenhum dado carregado.</p>
-                            <p class="empty-state-hint">Envie um arquivo TXT ou CSV para come&#231;ar.</p>
+                            <p class="empty-state-hint">Envie um arquivo TXT ou CSV para começar.</p>
                         </td>
                     </tr>
                 </tbody>

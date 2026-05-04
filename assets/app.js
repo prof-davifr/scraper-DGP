@@ -10,6 +10,9 @@ const CONFIG = Object.assign({
     pageTitle: 'Coletor-DGP'
 }, window.APP_CONFIG || {});
 
+// ---- Constants ----
+const FETCH_TIMEOUT_MS = 10000;
+
 // ---- State ----
 let currentGroups = [];
 let resultsMap    = new Map();
@@ -119,6 +122,16 @@ window.addEventListener('load', () => {
     exportBtn    && exportBtn.addEventListener('click',    onExportAll);
     exportErrorsBtn && exportErrorsBtn.addEventListener('click', onExportErrors);
 
+    // Table row event delegation (retry + copy)
+    if (resultsBody) {
+        resultsBody.addEventListener('click', (e) => {
+            const retryBtn = e.target.closest('[data-action="retry"]');
+            if (retryBtn) { retrySingle(retryBtn.dataset.id); return; }
+            const copyEl = e.target.closest('[data-action="copy"]');
+            if (copyEl) { copyCell(copyEl.dataset.copy); }
+        });
+    }
+
     chkLimit     && chkLimit.addEventListener('change',    updateTestModeBadge);
     customProxyInput && customProxyInput.addEventListener('input', () => { customProxy = customProxyInput.value.trim(); });
 
@@ -143,7 +156,7 @@ window.addEventListener('load', () => {
     updateTableCount();
     addLog('Terminal inicializado. Aguardando arquivo...', 'info');
 
-    if (window.location.hostname.includes('github.io')) {
+    if (window.location.hostname.endsWith('.github.io') || window.location.hostname === 'github.io') {
         const badge = document.getElementById('pagesBadge');
         if (badge) badge.style.display = 'inline-flex';
         addLog('\uD83D\uDE80 Rodando no GitHub Pages! Origem configurada corretamente.', 'success');
@@ -161,8 +174,14 @@ function addLog(message, type = 'info') {
     const time = new Date().toLocaleTimeString('pt-BR');
     const line = document.createElement('div');
     line.className = 'terminal-line';
-    line.innerHTML = '<span class="terminal-time">[' + time + ']</span>'
-                   + '<span class="terminal-' + type + '">' + message + '</span>';
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'terminal-time';
+    timeSpan.textContent = '[' + time + ']';
+    const msgSpan = document.createElement('span');
+    msgSpan.className = 'terminal-' + type;
+    msgSpan.textContent = message;
+    line.appendChild(timeSpan);
+    line.appendChild(msgSpan);
     terminal.appendChild(line);
     terminal.scrollTop = terminal.scrollHeight;
 }
@@ -199,9 +218,19 @@ function processFile(file) {
     if (fileInfo) fileInfo.classList.remove('hidden');
     if (dropZone) {
         const icon = dropZone.querySelector('.drop-zone-icon');
-        const text = dropZone.querySelector('.drop-zone-text');
+        const textEl = dropZone.querySelector('.drop-zone-text');
         if (icon) icon.textContent = '\uD83D\uDCC4';
-        if (text) text.innerHTML = '<strong>' + file.name + '</strong><br><small>clique para trocar</small>';
+        if (textEl) {
+            textEl.textContent = '';
+            const strong = document.createElement('strong');
+            strong.textContent = file.name;
+            const br = document.createElement('br');
+            const small = document.createElement('small');
+            small.textContent = 'clique para trocar';
+            textEl.appendChild(strong);
+            textEl.appendChild(br);
+            textEl.appendChild(small);
+        }
     }
     const reader = new FileReader();
     reader.onload = (e) => parseInput(e.target.result);
@@ -462,7 +491,7 @@ async function fetchGroupData(id) {
         try {
             addLog('Tentando proxy ' + proxyName + ' para ' + id + '...', 'info');
             const url  = proxy + encodeURIComponent(targetUrl);
-            const resp = await fetch(url, { signal: AbortSignal.timeout(10000) });
+            const resp = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
             if (!resp.ok) throw new Error('Status ' + resp.status);
             const html = await resp.text();
             addLog('Proxy ' + proxyName + ' respondeu com sucesso.', 'success');
@@ -550,9 +579,11 @@ function getContatoGrupo(doc) {
 }
 
 function decodeCloudflareEmail(hex) {
+    // Cloudflare obfuscates emails with XOR encoding: first byte is the key,
+    // remaining pairs are character codes XOR'd with the key.
     let email = '';
-    const key = parseInt(hex.substr(0, 2), 16);
-    for (let i = 2; i < hex.length; i += 2) email += String.fromCharCode(parseInt(hex.substr(i, 2), 16) ^ key);
+    const key = parseInt(hex.slice(0, 2), 16);
+    for (let i = 2; i < hex.length; i += 2) email += String.fromCharCode(parseInt(hex.slice(i, i + 2), 16) ^ key);
     return email;
 }
 
@@ -797,29 +828,29 @@ function populateRow(tr, data) {
 
     tr.innerHTML =
         '<td style="text-align:center;">'
-            + '<button class="btn btn-mini" onclick="retrySingle(\'' + escAttr(data.id) + '\')" title="Recarregar este grupo" aria-label="Recarregar grupo ' + escAttr(data.id) + '">\uD83D\uDD04</button>'
+            + '<button class="btn btn-mini" data-action="retry" data-id="' + escData(data.id) + '" title="Recarregar este grupo" aria-label="Recarregar grupo ' + escData(data.id) + '">\uD83D\uDD04</button>'
         + '</td>'
         + '<td><a href="http://dgp.cnpq.br/dgp/espelhogrupo/' + data.id + '" target="_blank" rel="noopener" style="color:var(--accent);">' + data.id + '</a></td>'
-        + '<td style="font-size:0.75rem; white-space:nowrap;">' + dateShort + '</td>'
-        + '<td class="cell-truncated" onclick="copyCell(\'' + escAttr(data.nomeInformado) + '\')" title="Clique para copiar">' + truncate(data.nomeInformado, 25) + '</td>'
-        + '<td><span class="status-badge ' + sClass + '" title="' + statusTitle + '">' + statusLabel + '</span></td>'
+        + '<td style="font-size:0.75rem; white-space:nowrap;">' + escHtml(dateShort) + '</td>'
+        + '<td class="cell-truncated" data-action="copy" data-copy="' + escData(data.nomeInformado) + '" title="Clique para copiar">' + escHtml(truncate(data.nomeInformado, 25)) + '</td>'
+        + '<td><span class="status-badge ' + sClass + '" title="' + escData(statusTitle) + '">' + escHtml(statusLabel) + '</span></td>'
         + '<td>' + escHtml(data.lider) + '</td>'
         + '<td>' + escHtml(data.viceLider) + '</td>'
         + '<td>' + escHtml(data.ultimoEnvio) + '</td>'
         + '<td>' + escHtml(data.anoFormacao) + '</td>'
-        + '<td class="cell-truncated" onclick="copyCell(\'' + escAttr(data.area) + '\')" title="Clique para copiar">' + truncate(data.area, 18) + '</td>'
-        + '<td class="cell-truncated" onclick="copyCell(\'' + escAttr(data.unidade) + '\')" title="Clique para copiar">' + truncate(data.unidade, 18) + '</td>'
+        + '<td class="cell-truncated" data-action="copy" data-copy="' + escData(data.area) + '" title="Clique para copiar">' + escHtml(truncate(data.area, 18)) + '</td>'
+        + '<td class="cell-truncated" data-action="copy" data-copy="' + escData(data.unidade) + '" title="Clique para copiar">' + escHtml(truncate(data.unidade, 18)) + '</td>'
         + '<td>' + escHtml(data.contato) + '</td>'
-        + '<td style="text-align:center;">' + data.pesquisadores + '</td>'
-        + '<td style="text-align:center;">' + data.estudantes + '</td>'
-        + '<td style="text-align:center;">' + data.tecnicos + '</td>'
-        + '<td style="text-align:center;">' + data.instParceiras + '</td>'
-        + '<td style="text-align:center;">' + data.inctsParceiras + '</td>'
-        + '<td class="cell-truncated" onclick="copyCell(\'' + escAttr(data.pesquisadoresNomes) + '\')" title="Clique para copiar">' + truncate(data.pesquisadoresNomes, 30) + '</td>';
+        + '<td style="text-align:center;">' + (parseInt(data.pesquisadores) || 0) + '</td>'
+        + '<td style="text-align:center;">' + (parseInt(data.estudantes) || 0) + '</td>'
+        + '<td style="text-align:center;">' + (parseInt(data.tecnicos) || 0) + '</td>'
+        + '<td style="text-align:center;">' + (parseInt(data.instParceiras) || 0) + '</td>'
+        + '<td style="text-align:center;">' + (parseInt(data.inctsParceiras) || 0) + '</td>'
+        + '<td class="cell-truncated" data-action="copy" data-copy="' + escData(data.pesquisadoresNomes) + '" title="Clique para copiar">' + escHtml(truncate(data.pesquisadoresNomes, 30)) + '</td>';
 }
 
-function escAttr(str) {
-    return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+function escData(str) {
+    return String(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 
 function escHtml(str) {
@@ -828,7 +859,7 @@ function escHtml(str) {
 
 function truncate(str, n) {
     str = String(str || '');
-    return str.length > n ? str.substr(0, n - 1) + '\u2026' : str;
+    return str.length > n ? str.slice(0, n - 1) + '\u2026' : str;
 }
 
 // ---- Copy Cell (global) ----
