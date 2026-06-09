@@ -19,7 +19,7 @@ https://prof-davifr.github.io/coletor-dgp
 ## Funcionalidades
 
 * Importação de lista de grupos via **TXT ou CSV**
-* Extração automática de dados do DGP
+* Extração automática de dados do DGP com **coleta paralela** (1–5 workers configurável)
 * Identificação de **líder e vice-líder**
 * Contagem de:
 
@@ -32,6 +32,7 @@ https://prof-davifr.github.io/coletor-dgp
 * Registro da **data de coleta**
 * Sistema de **retry automático para falhas**
 * Possibilidade de **interromper a varredura**
+* **Autosave de sessão** no `localStorage` com restauração automática ao recarregar
 * Exportação dos resultados para **CSV**
 * Visualização dos dados em **tabela interativa**
 * **Modo teste** (limita execução aos primeiros 20 grupos)
@@ -104,8 +105,8 @@ A aplicação roda **100% no navegador**, sem necessidade de backend.
 ## Observações importantes
 
 * A ferramenta utiliza **proxies CORS** para acessar as páginas do DGP.
-* Por padrão, o scraper tenta primeiro um **proxy local** (`localhost:3000`) e depois faz fallback para proxies públicos.
-* Para usar o proxy local, execute `npm start` antes de abrir o scraper.
+* Por padrão, o scraper tenta primeiro um **proxy local** (`localhost:3000`), depois o **proxy personalizado** (se configurado), e então faz fallback para proxies públicos.
+* Para usar o proxy local, execute `npm start` antes de abrir o scraper (`node proxy/proxy.js`).
 * O funcionamento depende da **estrutura HTML atual das páginas do DGP**.
 * Caso o site do CNPq seja alterado, pode ser necessário atualizar o parser.
 
@@ -121,6 +122,28 @@ npm start
 ```
 
 O proxy roda em `http://localhost:3000` e é utilizado automaticamente pelo scraper como primeira opção.
+O proxy local agora restringe requisições apenas ao domínio `dgp.cnpq.br`.
+
+---
+
+## Cloudflare Worker (Proxy Dedicado)
+
+Para uma solução mais robusta sem depender de proxies públicos, o projeto inclui um Cloudflare Worker gratuito em `proxy/cloudflare/`:
+
+```bash
+# 1. Instalar Wrangler (uma vez)
+npm install -g wrangler
+
+# 2. Autenticar (uma vez)
+wrangler login
+
+# 3. Deploy
+cd proxy/cloudflare
+wrangler deploy
+# Output: https://coletor-dgp-proxy.<seu-subdominio>.workers.dev
+```
+
+Após o deploy, cole a URL gerada (terminando em `?url=`) no campo **Proxy Personalizado** em Configurações Avançadas. A URL é salva automaticamente no `localStorage` e não precisa ser reconfigurada.
 
 ---
 

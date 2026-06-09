@@ -1,3 +1,12 @@
-*.txt
-*.csv
+# Arquivos de saída gerados pelo uso da ferramenta
+/*.txt
+/*.csv
+
+# Arquivos de exemplo (rastreados explicitamente)
+!samples/
+
+# Lock files do LibreOffice
+.~lock.*
+
+# Dependências Node
 node_modules/

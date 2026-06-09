@@ -3,6 +3,7 @@ const cors = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const ALLOWED_HOSTNAME = 'dgp.cnpq.br';
 
 app.use(cors());
 
@@ -10,6 +11,17 @@ app.get('/proxy', async (req, res) => {
     const targetUrl = req.query.url;
     if (!targetUrl) {
         return res.status(400).json({ error: 'Missing ?url= parameter' });
+    }
+
+    let parsed;
+    try { parsed = new URL(targetUrl); } catch {
+        return res.status(400).json({ error: 'Invalid URL' });
+    }
+
+    if (parsed.hostname !== ALLOWED_HOSTNAME) {
+        return res.status(403).json({
+            error: `Forbidden: only ${ALLOWED_HOSTNAME} is allowed`
+        });
     }
 
     console.log(`[${new Date().toISOString()}] Proxying: ${targetUrl}`);

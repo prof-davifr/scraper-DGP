@@ -25,6 +25,14 @@
             <span>&#127760;</span> <strong>GitHub Pages Mode</strong> &ndash; CORS Origin configurada.
         </div>
 
+        <div id="restoreBanner" class="restore-banner hidden" role="alert">
+            <span id="restoreBannerText"></span>
+            <div class="restore-actions">
+                <button id="restoreYesBtn" class="btn btn-mini">Restaurar</button>
+                <button id="restoreNoBtn"  class="btn btn-mini btn-secondary">Descartar</button>
+            </div>
+        </div>
+
         <nav class="steps-indicator" aria-label="Progresso da tarefa">
             <div class="step active" id="step1">
                 <div class="step-num">1</div>
@@ -128,8 +136,22 @@
                                placeholder="https://seu-proxy.com/?url="
                                aria-label="URL do proxy personalizado">
                     </div>
+                    <button id="clearProxyBtn" class="btn btn-mini btn-secondary" type="button"
+                            aria-label="Remover proxy personalizado salvo">
+                        Limpar proxy salvo
+                    </button>
+                    <div class="input-group">
+                        <label for="concurrencySelect">N&iacute;vel de paralelismo</label>
+                        <select id="concurrencySelect">
+                            <option value="1">1 &mdash; Sequencial</option>
+                            <option value="2">2 paralelos</option>
+                            <option value="3" selected>3 paralelos (recomendado)</option>
+                            <option value="4">4 paralelos</option>
+                            <option value="5">5 paralelos</option>
+                        </select>
+                    </div>
                     <p class="proxy-order-hint">
-                        Ordem de tentativa: Personalizado &rarr; allorigins.win &rarr; thingproxy &rarr; codetabs &rarr; corsproxy.io
+                        Ordem de tentativa: localhost:3000 &rarr; Personalizado &rarr; allorigins.win &rarr; codetabs &rarr; corsproxy.io
                     </p>
                 </div>
             </details>
@@ -225,11 +247,12 @@
                         <th style="text-align:center;" onclick="sortTable(15)"><abbr title="Instituiç&#245;es Parceiras">IP.</abbr> <span class="sort-indicator">&#8645;</span></th>
                         <th style="text-align:center;" onclick="sortTable(16)"><abbr title="INCTs Parceiras">IN.</abbr> <span class="sort-indicator">&#8645;</span></th>
                         <th onclick="sortTable(17)">Pesquisadores (Nomes) <span class="sort-indicator">&#8645;</span></th>
+                        <th onclick="sortTable(18)">Linhas de Pesquisa <span class="sort-indicator">&#8645;</span></th>
                     </tr>
                 </thead>
                 <tbody id="resultsBody">
                     <tr id="emptyStateRow" class="empty-state-row">
-                        <td colspan="18">
+                        <td colspan="19">
                             <span class="empty-state-icon">&#128203;</span>
                             <p class="empty-state-text">Nenhum dado carregado.</p>
                             <p class="empty-state-hint">Envie um arquivo TXT ou CSV para começar.</p>

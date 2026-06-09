@@ -106,6 +106,30 @@ body {
     gap: 0.5rem;
 }
 
+/* ---- Restore Banner ---- */
+.restore-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    background: rgba(251,191,36,0.2);
+    color: #fcd34d;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(251,191,36,0.35);
+}
+
+.restore-banner.hidden { display: none; }
+
+.restore-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
 /* ---- Glass Panel ---- */
 .glass-panel {
     background: var(--glass-bg);

@@ -11,7 +11,7 @@ const CONFIG = Object.assign({
 }, window.APP_CONFIG || {});
 
 // ---- Constants ----
-const FETCH_TIMEOUT_MS = 10000;
+const FETCH_TIMEOUT_MS = 15000;
 
 // ---- State ----
 let currentGroups = [];
@@ -28,9 +28,9 @@ let customProxy   = '';
 const proxyList = [
     'http://localhost:3000/proxy?url=',
     'https://api.allorigins.win/raw?url=',
-    'https://thingproxy.freeboard.io/fetch/',
     'https://api.codetabs.com/v1/proxy?url=',
-    'https://corsproxy.io/?'
+    'https://corsproxy.io/?',
+    'https://cors-anywhere.herokuapp.com/'
 ];
 
 // ---- DOM References (resolved after DOMContentLoaded) ----
@@ -43,6 +43,8 @@ let chkLimit, testModeBadge;
 let statsWaiting, statsSuccess, statsError, statsTotal;
 let toastEl, copyToastEl;
 let customProxyInput, emptyStateRow;
+let concurrencyInput, clearProxyBtn;
+let restoreBanner, restoreYesBtn, restoreNoBtn;
 
 function resolveDOM() {
     fileInput         = document.getElementById('fileInput');
@@ -77,6 +79,11 @@ function resolveDOM() {
     copyToastEl       = document.getElementById('copyToast');
     customProxyInput  = document.getElementById('customProxyInput');
     emptyStateRow     = document.getElementById('emptyStateRow');
+    concurrencyInput  = document.getElementById('concurrencySelect');
+    clearProxyBtn     = document.getElementById('clearProxyBtn');
+    restoreBanner     = document.getElementById('restoreBanner');
+    restoreYesBtn     = document.getElementById('restoreYesBtn');
+    restoreNoBtn      = document.getElementById('restoreNoBtn');
 }
 
 // ---- Apply Branding ----
@@ -134,7 +141,27 @@ window.addEventListener('load', () => {
     }
 
     chkLimit     && chkLimit.addEventListener('change',    updateTestModeBadge);
-    customProxyInput && customProxyInput.addEventListener('input', () => { customProxy = customProxyInput.value.trim(); });
+    customProxyInput && customProxyInput.addEventListener('input', () => {
+        customProxy = customProxyInput.value.trim();
+        if (customProxy) localStorage.setItem('coletor_dgp_proxy', customProxy);
+        else localStorage.removeItem('coletor_dgp_proxy');
+    });
+
+    clearProxyBtn && clearProxyBtn.addEventListener('click', () => {
+        customProxy = '';
+        if (customProxyInput) customProxyInput.value = '';
+        localStorage.removeItem('coletor_dgp_proxy');
+    });
+
+    restoreYesBtn && restoreYesBtn.addEventListener('click', () => {
+        restoreSession();
+        if (restoreBanner) restoreBanner.classList.add('hidden');
+    });
+
+    restoreNoBtn && restoreNoBtn.addEventListener('click', () => {
+        clearSession();
+        if (restoreBanner) restoreBanner.classList.add('hidden');
+    });
 
     tableSearch && tableSearch.addEventListener('input', () => {
         filterText = tableSearch.value.trim().toLowerCase();
@@ -156,6 +183,30 @@ window.addEventListener('load', () => {
     updateStats();
     updateTableCount();
     addLog('Terminal inicializado. Aguardando arquivo...', 'info');
+
+    // Restore saved proxy
+    const savedProxy = localStorage.getItem('coletor_dgp_proxy');
+    if (savedProxy) {
+        customProxy = savedProxy;
+        if (customProxyInput) customProxyInput.value = savedProxy;
+    }
+
+    // Check for saved session
+    try {
+        const raw = localStorage.getItem('coletor_dgp_session');
+        if (raw) {
+            const state = JSON.parse(raw);
+            const ageDays = (Date.now() - new Date(state.savedAt)) / 86400000;
+            if (ageDays > 7) { clearSession(); }
+            else if (state.currentGroups && state.currentGroups.length > 0) {
+                const date = new Date(state.savedAt).toLocaleString('pt-BR');
+                const bannerText = document.getElementById('restoreBannerText');
+                if (bannerText) bannerText.textContent =
+                    `Sessão salva em ${date} — ${state.currentGroups.length} grupos.`;
+                if (restoreBanner) restoreBanner.classList.remove('hidden');
+            }
+        }
+    } catch (e) { clearSession(); }
 
     if (window.location.hostname.endsWith('.github.io') || window.location.hostname === 'github.io') {
         const badge = document.getElementById('pagesBadge');
@@ -247,6 +298,7 @@ function processFile(file) {
 function resetFileState() {
     currentGroups = [];
     resultsMap.clear();
+    clearSession();
     if (resultsBody) resultsBody.innerHTML = '';
     if (fileInput)   fileInput.value = '';
     if (fileInfo)    fileInfo.classList.add('hidden');
@@ -274,7 +326,79 @@ function showFileFeedback(msg, type) {
     fileFeedback.className = 'file-feedback ' + type;
 }
 
+// ---- Session Persistence ----
+function saveSession() {
+    try {
+        localStorage.setItem('coletor_dgp_session', JSON.stringify({
+            savedAt: new Date().toISOString(),
+            currentGroups,
+            resultsMap: Array.from(resultsMap.entries())
+        }));
+    } catch (e) { /* quota exceeded */ }
+}
+
+function clearSession() {
+    localStorage.removeItem('coletor_dgp_session');
+}
+
+function restoreSession() {
+    try {
+        const raw = localStorage.getItem('coletor_dgp_session');
+        if (!raw) return;
+        const state = JSON.parse(raw);
+        if (!state.currentGroups || !state.resultsMap) return;
+
+        currentGroups = state.currentGroups;
+        resultsMap = new Map(state.resultsMap);
+
+        if (resultsBody) resultsBody.innerHTML = '';
+        for (const data of resultsMap.values()) {
+            const tr = document.createElement('tr');
+            tr.id = 'row-' + data.id;
+            populateRow(tr, data);
+            resultsBody.appendChild(tr);
+        }
+
+        const n = currentGroups.length;
+        showFileFeedback('\u2705 ' + n + ' grupo' + (n !== 1 ? 's' : '') + ' restaurado' + (n !== 1 ? 's' : '') + '.', 'success');
+        if (startBtn) startBtn.disabled = false;
+        if (exportBtn) exportBtn.disabled = resultsMap.size === 0;
+        updateEmptyState();
+        updateStats();
+        updateTableCount();
+        checkFailures();
+        setStep(4);
+        addLog('Sessão anterior restaurada: ' + n + ' grupos.', 'success');
+    } catch (e) {
+        clearSession();
+        addLog('Falha ao restaurar sessão: ' + e.message, 'error');
+    }
+}
+
 // ---- Parse ----
+function splitCSVLine(line) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (inQuotes) {
+            if (ch === '"') {
+                if (line[i + 1] === '"') { current += '"'; i++; }  // escaped quotes
+                else inQuotes = false;
+            } else {
+                current += ch;
+            }
+        } else {
+            if (ch === '"') { inQuotes = true; }
+            else if (ch === ',') { result.push(current); current = ''; }
+            else { current += ch; }
+        }
+    }
+    result.push(current);
+    return result;
+}
+
 function parseInput(text) {
     const lines = text.split('\n').map(l => l.trim()).filter(l => l);
     if (lines.length === 0) { showFileFeedback('\u274C Arquivo vazio.', 'error'); return; }
@@ -322,7 +446,7 @@ function parseTXT(lines) {
 }
 
 function parseCSV(lines) {
-    const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
+    const headers = splitCSVLine(lines[0]).map(h => h.trim());
     const idx = (name) => headers.indexOf(name);
     const idIdx         = idx('ID');
     const nomeIdx       = idx('Nome Base');
@@ -345,9 +469,10 @@ function parseCSV(lines) {
     const linhasIdx     = idx('Linhas de Pesquisa');
 
     for (let i = 1; i < lines.length; i++) {
-        const parts = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-        if (!parts || parts.length < 2) continue;
-        const clean = (ix) => (ix !== -1 && parts[ix]) ? parts[ix].replace(/^"|"$/g, '').replace(/""/g, '"').trim() : 'N/A';
+        const parts = splitCSVLine(lines[i]);
+        if (parts.length < 2) continue;
+        const clean = (ix) => (ix !== -1 && parts[ix] !== undefined)
+            ? parts[ix].trim() || 'N/A' : 'N/A';
         const id = clean(idIdx);
         if (!/^\d{16}$/.test(id)) continue;
         const data = {
@@ -439,51 +564,55 @@ async function runScraper(groups) {
 
     isRunning = true;
     updateUIState(true);
-    addLog('Iniciando varredura de ' + list.length + ' grupos...', 'info');
     startTimer();
-    _timerCurrent = 0; _timerTotal = list.length;
 
-    const total = list.length;
-    let current = 0;
+    const total       = list.length;
+    const queue       = [...list];
+    let   completed   = 0;
+    const concurrency = Math.min(parseInt(concurrencyInput?.value) || 3, total);
+    _timerCurrent = 0; _timerTotal = total;
 
-    for (const group of list) {
-        if (!isRunning) break;
-        current++;
-        updateProgress(current, total, 'Extraindo: ' + group.id);
-        updateTimerDisplay(current - 1, total);
-        addLog('[' + current + '/' + total + '] Extraindo: ' + group.nome + ' (' + group.id + ')', 'info');
-        try {
-            const data = await fetchGroupData(group.id);
-            const usedFallback = data._usedFallback;
-            delete data._usedFallback;
-            data.id            = group.id;
-            data.nomeInformado = group.nome;
-            data.dataColeta    = new Date().toLocaleString('pt-BR');
-            data.error         = false;
-            resultsMap.set(group.id, data);
-            updateOrAddRow(data);
-            updateStats();
-            addLog('[' + current + '/' + total + '] \u2713 Sucesso: ' + group.nome, 'success');
-            if (current < total) await sleep(usedFallback ? 3000 : 1500);
-        } catch (e) {
-            const errorData = createErrorData(group, e.message);
-            resultsMap.set(group.id, errorData);
-            updateOrAddRow(errorData);
-            updateStats();
-            addLog('[' + current + '/' + total + '] \u2717 Erro em ' + group.nome + ': ' + e.message, 'error');
-            if (current < total) await sleep(1500);
+    addLog('Iniciando varredura de ' + total + ' grupos (' + concurrency + ' paralelos)...', 'info');
+
+    async function worker() {
+        while (isRunning) {
+            const group = queue.shift();
+            if (!group) break;
+            addLog('Extraindo: ' + group.nome + ' (' + group.id + ')', 'info');
+            try {
+                const data = await fetchGroupData(group.id);
+                delete data._usedFallback;
+                Object.assign(data, {
+                    id: group.id, nomeInformado: group.nome,
+                    dataColeta: new Date().toLocaleString('pt-BR'), error: false
+                });
+                resultsMap.set(group.id, data);
+                updateOrAddRow(data);
+                updateStats();
+                addLog('\u2713 Sucesso: ' + group.nome, 'success');
+            } catch (e) {
+                const err = createErrorData(group, e.message);
+                resultsMap.set(group.id, err);
+                updateOrAddRow(err);
+                updateStats();
+                addLog('\u2717 Erro em ' + group.nome + ': ' + e.message, 'error');
+            }
+            completed++;
+            updateProgress(completed, total, completed + '/' + total + ' conclu\u00EDdos');
+            updateTimerDisplay(completed, total);
         }
     }
 
-    isRunning = false;
+    await Promise.all(Array.from({ length: concurrency }, worker));
+
     stopTimer();
     updateUIState(false);
-    addLog('Varredura concluída.', 'success');
+    addLog('Varredura conclu\u00EDda.', 'success');
     checkFailures();
     setStep(4);
 }
 
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+let _corsAnywhereWarned = false;
 
 // ---- Fetch Group Data ----
 async function fetchGroupData(id) {
@@ -492,12 +621,18 @@ async function fetchGroupData(id) {
     const allProxies = customProxy ? [customProxy, ...proxyList] : proxyList;
 
     for (const [proxyIndex, proxy] of allProxies.entries()) {
-        const proxyName = proxy.includes('localhost')   ? 'localhost:3000'
-                        : proxy.includes('allorigins')  ? 'allorigins.win'
-                        : proxy.includes('thingproxy')  ? 'thingproxy'
-                        : proxy.includes('codetabs')    ? 'codetabs'
-                        : proxy.includes('corsproxy')   ? 'corsproxy.io'
+        const proxyName = proxy.includes('localhost')    ? 'localhost:3000'
+                        : proxy.includes('allorigins')   ? 'allorigins.win'
+                        : proxy.includes('codetabs')     ? 'codetabs'
+                        : proxy.includes('corsproxy.io') ? 'corsproxy.io'
+                        : proxy.includes('herokuapp')    ? 'cors-anywhere'
                         : 'personalizado';
+
+        if (proxy.includes('herokuapp') && !_corsAnywhereWarned) {
+            _corsAnywhereWarned = true;
+            addLog('Nota: cors-anywhere.herokuapp.com requer acesso manual em https://cors-anywhere.herokuapp.com/corsdemo', 'warning');
+        }
+
         try {
             addLog('Tentando proxy ' + proxyName + ' para ' + id + '...', 'info');
             const url  = proxy + encodeURIComponent(targetUrl);
@@ -552,7 +687,7 @@ async function fetchGroupData(id) {
             }
         }
     }
-    throw lastError || new Error('Todos os proxies falharam');
+    throw lastError || new Error('Todos os proxies falharam. Configure um Cloudflare Worker em Configurações Avançadas.');
 }
 
 // ---- DGP Parsers ----
@@ -842,6 +977,7 @@ function updateTableCount(visible) {
 // ---- Row Rendering ----
 function updateOrAddRow(data) {
     resultsMap.set(data.id, data);
+    saveSession();
     updateEmptyState();
     if (filterText || sortCol > 0) {
         renderTable();

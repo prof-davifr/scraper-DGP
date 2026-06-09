@@ -2,9 +2,9 @@
   "name": "scraper-dgp-proxy",
   "version": "1.0.0",
   "description": "Local CORS proxy for Coletor-DGP",
-  "main": "proxy.js",
+  "main": "proxy/proxy.js",
   "scripts": {
-    "start": "node proxy.js"
+    "start": "node proxy/proxy.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
