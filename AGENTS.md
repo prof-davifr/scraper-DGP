@@ -4,8 +4,9 @@
 
 - **Sistema**: DGP/CNPq (Diretório de Grupos de Pesquisa)
 - **URL base**: `http://dgp.cnpq.br/dgp/espelhogrupo/{id}`
-- **Proxies**: localhost:3000, allorigins.win, codetabs, corsproxy.io, cors-anywhere (fallback)
+- **Proxies**: localhost:3000, allorigins.win, codetabs, corsproxy.io, cors-anywhere (fallback) — só a **versão web** usa proxy CORS; o CLI (`cli/coletar.js`) busca direto
 - **API alternativa**: Cloudflare Worker em `proxy/cloudflare/`
+- **Lista de grupos**: `https://suap.ifba.edu.br/admin/cnpq/grupopesquisa/?instituicao=IFBA` (extraída por `suap/listar_grupos.py`)
 
 ## Dados Coletados
 
@@ -31,9 +32,22 @@
 
 Arquivo `.txt` (IDs separados por tab) ou `.csv` com colunas.
 
+A `lista de grupos de pesquisa.txt` é versionada (só ID + nome, sem PII) e
+atualizada por `suap/listar_grupos.py`.
+
 ## Formato de Saída
 
-CSV (`coletor_dgp_[data].csv`) exportado pelo frontend.
+CSV (`coletor_dgp_[data].csv`) exportado pelo frontend **ou** pelo CLI
+(`cli/coletar.js`). O CSV contém PII (nomes/contatos) e **não é versionado**.
+
+## Automação
+
+- `npm run listar` → `suap/listar_grupos.py` (Selenium) gera a lista do SUAP
+- `npm run coletar` → `cli/coletar.js` (Node + jsdom, sem navegador) varre o DGP
+- `npm run pipeline` → `pipeline.sh` encadeia SUAP→DGP→dashboard (`--skip-suap`,
+  `--dashboard DIR`, `--commit` para git add/commit/push)
+- `cli/parser.js` é o port fiel do parser de `assets/app.js`; `cli/smoke.js` e o
+  CI (` .github/workflows/ci.yml`) validam o parser contra um fixture + 3 grupos reais
 
 ## Projetos Consumidores
 
@@ -43,10 +57,16 @@ CSV (`coletor_dgp_[data].csv`) exportado pelo frontend.
 ## Fluxo
 
 ```
-dgp.cnpq.br → [proxy CORS] → app.js (frontend) → CSV exportado
-                                                         ↓
-                                           dashboard-prpgi/build.js → data.json
+SUAP (admin/cnpq/grupopesquisa) → suap/listar_grupos.py → lista de grupos de pesquisa.txt
+                                                                  ↓
+dgp.cnpq.br → cli/coletar.js (Node + jsdom, sem proxy) → coletor_dgp_[data].csv
+                                                                  ↓
+                                          dashboard-prpgi/dados/scraper-DGP/
+                                                                  ↓
+                                          dashboard-prpgi/build.js → data.json
 ```
+
+Versão web (legado): `dgp.cnpq.br → [proxy CORS] → app.js (frontend) → CSV exportado`.
 
 ## TODO.md
 

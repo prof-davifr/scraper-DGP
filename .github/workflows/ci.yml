@@ -1,0 +1,30 @@
+name: CI — parser e varredura smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Semanalmente: detecta mudanças na estrutura HTML do DGP/CNPq
+    - cron: '0 6 * * 1'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Valida o parser contra um fixture salvo + a lista versionada (sem rede)
+      - name: Smoke test do parser (offline)
+        run: node cli/smoke.js
+
+      # Varredura real de 3 grupos do DGP/CNPq (site público) — sem PII versionada
+      - name: Varredura real (3 grupos)
+        run: node cli/coletar.js --limit 3 --quiet --out /tmp/smoke.csv

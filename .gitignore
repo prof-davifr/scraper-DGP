@@ -1,6 +1,9 @@
-# Arquivos de saída gerados pelo uso da ferramenta
-/*.txt
+# CSVs gerados (contêm PII: nomes/contatos) — nunca versionar
 /*.csv
+
+# TXTs gerados — exceto a lista de grupos (só ID + nome, versionada)
+/*.txt
+!lista de grupos de pesquisa.txt
 
 # Arquivos de exemplo (rastreados explicitamente)
 !samples/
@@ -10,3 +13,7 @@
 
 # Dependências Node
 node_modules/
+
+# Credenciais SUAP — nunca versionar
+.env
+suap/.env

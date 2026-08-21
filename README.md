@@ -90,6 +90,27 @@ Também aceita arquivos CSV previamente exportados pela própria ferramenta.
 
 ---
 
+## Automação (CLI + pipeline)
+
+A versão web exige exportar a lista de grupos do SUAP **à mão** — e grupos novos
+ficam de fora. Para fechar o ciclo, o repo inclui um pipeline headless:
+
+```
+SUAP (lista de grupos) → DGP/CNPq (detalhes) → dashboard-prpgi (data.json)
+```
+
+| Etapa | Comando | O que faz |
+|---|---|---|
+| 1. Lista SUAP | `npm run listar` | Loga no SUAP e gera `lista de grupos de pesquisa.txt` (ID\tNome) — detecta grupos **novos/removidos** |
+| 2. Varredura DGP | `npm run coletar` | `cli/coletar.js` (Node + jsdom, sem proxy) lê a lista e gera `coletor_dgp_YYYY-MM-DD.csv` |
+| 3. Pipeline completo | `npm run pipeline` | Encadeia 1→2→copia CSV→`npm run build`+`validate`+`test` no dashboard |
+
+`pipeline.sh` aceita `--skip-suap` (reusa a lista, não loga), `--dashboard DIR`
+e `--commit` (git add/commit/push nos dois repos após rodar).
+
+O CSV bruto contém **PII** (nomes/contatos) e **não é versionado**; apenas o
+`data.json` anonimizado e a `lista de grupos` (só ID + nome) vão ao git.
+
 ## Tecnologias utilizadas
 
 * HTML5
@@ -97,8 +118,10 @@ Também aceita arquivos CSV previamente exportados pela própria ferramenta.
 * JavaScript (Vanilla)
 * DOMParser
 * Fetch API
+* Node.js + jsdom (CLI headless `cli/coletar.js`)
+* Python + Selenium (extrator da lista do SUAP, `suap/listar_grupos.py`)
 
-A aplicação roda **100% no navegador**, sem necessidade de backend.
+A aplicação web roda **100% no navegador**; o CLI roda em Node sem navegador.
 
 ---
 

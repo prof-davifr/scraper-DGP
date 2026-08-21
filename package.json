@@ -1,14 +1,18 @@
 {
-  "name": "scraper-dgp-proxy",
-  "version": "1.0.0",
-  "description": "Local CORS proxy for Coletor-DGP",
-  "main": "proxy/proxy.js",
+  "name": "scraper-dgp",
+  "version": "1.1.0",
+  "description": "Coletor DGP (CNPq) — frontend + proxy CORS + CLI headless",
+  "main": "cli/coletar.js",
   "scripts": {
-    "start": "node proxy/proxy.js"
+    "start": "node proxy/proxy.js",
+    "coletar": "node cli/coletar.js",
+    "listar": "python3 suap/listar_grupos.py",
+    "pipeline": "bash pipeline.sh"
   },
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.2",
-    "http-proxy-middleware": "^2.0.6"
+    "http-proxy-middleware": "^2.0.6",
+    "jsdom": "^24.0.0"
   }
 }
