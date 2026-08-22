@@ -111,6 +111,25 @@ e `--commit` (git add/commit/push nos dois repos após rodar).
 O CSV bruto contém **PII** (nomes/contatos) e **não é versionado**; apenas o
 `data.json` anonimizado e a `lista de grupos` (só ID + nome) vão ao git.
 
+### GitHub Actions (atualização automática da base)
+
+A varredura DGP → `data.json` roda **sozinha** no GitHub Actions do dashboard
+(`.github/workflows/refresh-grupos.yml`): semanal (seg, 06:00 UTC) ou manual
+(`workflow_dispatch`). Ela usa a lista versionada + `dgp.cnpq.br` (público) e
+commita só o `data.json` anonimizado — **não precisa de credenciais nem expõe PII**.
+
+A **lista do SUAP** não pode rodar nesse runner público: exige login institucional
+(credenciais) e a rede do IFBA. Duas opções para automatizá-la também:
+
+1. **Cron local** (mais simples):
+   ```bash
+   # roda toda segunda 07:00 e commita/push
+   0 7 * * 1 cd /caminho/scraper-DGP && ./pipeline.sh --commit
+   ```
+2. **Self-hosted runner**: registre uma máquina do IFBA no repo e deixe o
+   `.env` (SUAP_USER/SUAP_PASS) nela; o workflow passa a poder rodar também o
+   `suap/listar_grupos.py` antes da varredura DGP.
+
 ## Tecnologias utilizadas
 
 * HTML5
