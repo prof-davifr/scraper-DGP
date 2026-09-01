@@ -21,8 +21,8 @@
 9814589582429761	Ecologia, Saúde e Meio Ambiente
 1019575033095118	Educação da atenção - cotidianos, de(s)colonialidades e corpos em movimentos
 5622817566227151	Educação e Tecnologias - GPETec
-7975014917514202	Educação, Linguagens e Práxis Pedagógica
 1677076250644328	Educação, Linguagens e Práxis Pedagógica
+7975014917514202	Educação, Linguagens e Práxis Pedagógica
 5699535759509595	Educação, Tecnologias e Dinâmica territoriais no Baixo Sul da Bahia
 2916945746237197	Eficiência Energética, Saúde e Segurança do Trabalho, Construção Civil e Tecnologias Limpas
 3675044329414826	ELiPor - Estudos da Língua Portuguesa: descrição e ensino
