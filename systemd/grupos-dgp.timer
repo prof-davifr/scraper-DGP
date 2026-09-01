@@ -1,0 +1,13 @@
+[Unit]
+Description=Verificação diária da lista de grupos de pesquisa do IFBA
+
+[Timer]
+# Verifica todo dia. O próprio script respeita a cadência de 7 dias e sai cedo
+# quando a lista está recente ou quando o SUAP está fora de alcance. Assim, uma
+# semana com a máquina desligada ou fora da rede do IFBA não perde a rodada.
+OnCalendar=*-*-* 07:00:00
+RandomizedDelaySec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

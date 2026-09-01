@@ -1,0 +1,14 @@
+[Unit]
+Description=Atualiza a lista de grupos de pesquisa do IFBA (SUAP)
+Documentation=file:///home/davi/projetos/repos-independentes/scraper-DGP/README.md
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/davi/projetos/repos-independentes/scraper-DGP
+# O serviço não herda o PATH do terminal. O node vem do nvm; ajuste a versão
+# aqui se ela mudar.
+Environment=PATH=/home/davi/.nvm/versions/node/v22.23.2/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/home/davi/projetos/repos-independentes/scraper-DGP/scripts/atualizar-lista.sh
+TimeoutStartSec=30min
