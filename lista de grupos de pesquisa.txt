@@ -21,8 +21,8 @@
 9814589582429761	Ecologia, Saúde e Meio Ambiente
 1019575033095118	Educação da atenção - cotidianos, de(s)colonialidades e corpos em movimentos
 5622817566227151	Educação e Tecnologias - GPETec
-1677076250644328	Educação, Linguagens e Práxis Pedagógica
 7975014917514202	Educação, Linguagens e Práxis Pedagógica
+1677076250644328	Educação, Linguagens e Práxis Pedagógica
 5699535759509595	Educação, Tecnologias e Dinâmica territoriais no Baixo Sul da Bahia
 2916945746237197	Eficiência Energética, Saúde e Segurança do Trabalho, Construção Civil e Tecnologias Limpas
 3675044329414826	ELiPor - Estudos da Língua Portuguesa: descrição e ensino
@@ -185,6 +185,7 @@
 0842244589346946	Núcleo Interdisciplinar de Estudos em Filosofia, Psicologia e Neurociências (NIEFPN)
 5153163480144971	Núcleo Interdisciplinar de Pesquisas em Matemática, Educação Matemática e Tecnologias Digitais - NIPMEMTD
 5830291458457784	Núcleo Pós-humanista de Pesquisa em Saberes e Direitos Animais, Ambientais e Cibernéticos (NÚCLEO SUÍÇA)
+9859501962392215	O Ensino de Inglês e Espanhol Sob a Perspectiva de Lingua Franca
 8718753179218155	PAMC
 4982891831313888	Práticas Educativas, Docência e Interculturalidade - GPEDI
 4063268731499938	Processamento e Caracterização de Materiais
