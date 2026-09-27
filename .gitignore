@@ -17,3 +17,6 @@ node_modules/
 # Credenciais SUAP — nunca versionar
 .env
 suap/.env
+
+# Cache do Python
+__pycache__/

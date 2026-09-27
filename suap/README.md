@@ -18,7 +18,8 @@ do DGP. Hoje o SUAP tem **210 grupos**; a lista antiga tinha **197** (13 novos).
 ```bash
 # 1. credenciais (gitignored, chmod 600)
 cp suap/.env.example suap/.env
-# edite suap/.env com SUAP_USER / SUAP_PASS
+# edite suap/.env com SUAP_USER; a senha vai no .env (SUAP_PASS)
+# ou no cofre do sistema: keyring set suap <matricula>
 
 # 2. dependências
 pip install -r suap/requirements.txt

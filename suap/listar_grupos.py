@@ -17,7 +17,8 @@ Requisitos (instalar com `pip install -r suap/requirements.txt`):
 
 Credenciais: `suap/.env` (gitignored, chmod 600):
   SUAP_USER=...
-  SUAP_PASS=...
+  SUAP_PASS=...          (opcional: sem ela, a senha vem do cofre do sistema,
+                          gravada com `keyring set suap <matricula>`)
   SUAP_BASE_URL=https://suap.ifba.edu.br
 """
 
@@ -162,6 +163,17 @@ def diff_with_previous(groups: list[tuple[str, str]], out: Path) -> None:
         logger.info("Nenhuma mudança.")
 
 
+def senha_do_cofre(usuario: str) -> str:
+    """Senha do SUAP no cofre do sistema (serviço 'suap'), se houver."""
+    if not usuario:
+        return ""
+    try:
+        import keyring
+        return keyring.get_password("suap", usuario) or ""
+    except Exception:
+        return ""
+
+
 def main():
     parser = argparse.ArgumentParser(description="Gera a lista de grupos de pesquisa a partir do SUAP/IFBA")
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT, help="Arquivo de saída (padrão: lista de grupos de pesquisa.txt)")
@@ -175,9 +187,9 @@ def main():
 
     env = load_env(ROOT / "suap" / ".env")
     user = env.get("SUAP_USER", "")
-    password = env.get("SUAP_PASS", "")
+    password = env.get("SUAP_PASS", "") or senha_do_cofre(user)
     if not user or not password:
-        logger.error("SUAP_USER/SUAP_PASS ausentes em suap/.env")
+        logger.error("SUAP_USER ausente em suap/.env, ou senha ausente (SUAP_PASS ou keyring set suap)")
         sys.exit(1)
 
     driver = None
