@@ -80,6 +80,31 @@ if (fs.existsSync(certPath)) {
   }
 }
 
+// 1c. Modo incremental (--base): leitura do CSV anterior, sem rede e sem PII.
+{
+  const { parseCSV, loadBase, buildCSV, CSV_HEADERS } = require('./coletar');
+  const linha = (id, dataColeta, extra = {}) => CSV_HEADERS.map((h) => {
+    if (h === 'ID') return id;
+    if (h === 'Data Coleta') return dataColeta;
+    return h in extra ? extra[h] : 'x';
+  });
+  const agora = new Date(2026, 9, 18, 12, 0, 0);
+  const linhas = [
+    linha('1111111111111111', '17/10/2026, 08:00:00', { 'Linhas de Pesquisa': 'a, "b"; c\nd' }),
+    linha('2222222222222222', '17/10/2026, 08:00:00', { 'Ano Formação': '?', 'Líder': '?' }),
+    linha('3333333333333333', '01/10/2026, 08:00:00'),
+  ];
+  const csv = buildCSV(linhas.map((l) => ({ linhaBase: l })));
+  check('[incremental] CSV volta igual após parse', () =>
+    assert.deepStrictEqual(parseCSV(csv), [CSV_HEADERS, ...linhas]));
+  check('[incremental] reaproveita só coleta recente e sem erro', () =>
+    assert.deepStrictEqual([...loadBase(csv, 7, agora).keys()], ['1111111111111111']));
+  check('[incremental] idade maior inclui a coleta antiga', () =>
+    assert.deepStrictEqual([...loadBase(csv, 30, agora).keys()], ['1111111111111111', '3333333333333333']));
+  check('[incremental] recusa CSV de outro formato', () =>
+    assert.throws(() => loadBase('﻿ID,Nome\n"1","a"', 7, agora), /cabeçalho/));
+}
+
 // 2. Lista de grupos versionada (formato ID\tNome)
 const listaPath = path.join(ROOT, 'lista de grupos de pesquisa.txt');
 check('lista versionada existe', () => assert.ok(fs.existsSync(listaPath), 'lista não encontrada'));

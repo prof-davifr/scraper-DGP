@@ -112,6 +112,12 @@ antes de commitar: se o clone divergir do remoto (por exemplo, porque a rodada
 automática do dashboard commitou o `data.json` no meio da execução), ele aborta
 sem commitar.
 
+Modo incremental (opcional): `node cli/coletar.js --base CSV_ANTERIOR
+[--max-idade-dias N]` reaproveita as linhas do CSV anterior coletadas há menos de
+N dias (padrão 7) e só busca no DGP os grupos novos na lista, os que falharam e
+os de coleta antiga. Serve para revarrer logo depois de uma mudança na lista sem
+repetir os 210 grupos. Sem `--base`, a varredura é completa, como antes.
+
 O CSV bruto contém **PII** (nomes/contatos) e **não é versionado**; apenas o
 `data.json` anonimizado e a `lista de grupos` (só ID + nome) vão ao git.
 

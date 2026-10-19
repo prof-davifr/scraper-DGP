@@ -12,6 +12,12 @@
  * Uso:
  *   node cli/coletar.js [--input LISTA] [--out CSV] [--concurrency N]
  *                       [--limit N] [--timeout MS] [--retries N] [--quiet]
+ *                       [--base CSV_ANTERIOR] [--max-idade-dias N]
+ *
+ * Modo incremental (opcional): com `--base`, as linhas do CSV anterior coletadas
+ * há menos de `--max-idade-dias` dias (padrão 7) são reaproveitadas; só se
+ * buscam no DGP os grupos novos na lista, os que falharam antes e os de coleta
+ * antiga. Grupo que saiu da lista sai do CSV. Sem `--base`, varre tudo.
  */
 
 'use strict';
@@ -48,6 +54,8 @@ function parseArgs() {
     timeout: parseInt(opt('--timeout', '30000'), 10),
     retries: parseInt(opt('--retries', '3'), 10),
     quiet: args.includes('--quiet'),
+    base: opt('--base', ''),
+    maxIdadeDias: parseFloat(opt('--max-idade-dias', '7')),
   };
 }
 
@@ -74,6 +82,58 @@ function readGroups(inputPath) {
     groups.push({ id, nome });
   }
   return groups;
+}
+
+// Lê o CSV gerado por buildCSV (BOM, todos os campos entre aspas, aspas
+// dobradas, quebras de linha dentro de campos).
+function parseCSV(text) {
+  if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
+  const rows = [];
+  let row = [];
+  let field = '';
+  let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { field += '"'; i++; } else quoted = false;
+      } else field += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ',') { row.push(field); field = ''; }
+    else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+    else if (c !== '\r') field += c;
+  }
+  if (field !== '' || row.length > 0) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+// "DD/MM/AAAA, HH:MM:SS" (fmtDataColeta) → Date, ou null.
+function parseDataColeta(str) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})$/.exec(String(str || '').trim());
+  if (!m) return null;
+  return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +m[6]);
+}
+
+// Linhas reaproveitáveis do CSV anterior, por ID. Descarta cabeçalho diferente,
+// linhas de erro (errorData grava '?' em Ano Formação e Líder) e coletas com
+// idade >= maxIdadeDias.
+function loadBase(csvText, maxIdadeDias, agora = new Date()) {
+  const rows = parseCSV(csvText);
+  const header = rows.shift() || [];
+  if (header.join(',') !== CSV_HEADERS.join(',')) {
+    throw new Error(`cabeçalho do CSV base não é o do coletor (${CSV_HEADERS.length} colunas)`);
+  }
+  const col = (nome) => CSV_HEADERS.indexOf(nome);
+  const limiteMs = maxIdadeDias * 86400 * 1000;
+  const base = new Map();
+  for (const r of rows) {
+    if (r.length !== CSV_HEADERS.length) continue;
+    if (r[col('Ano Formação')] === '?' && r[col('Líder')] === '?') continue;
+    const quando = parseDataColeta(r[col('Data Coleta')]);
+    if (!quando || agora - quando >= limiteMs) continue;
+    base.set(r[col('ID')], r);
+  }
+  return base;
 }
 
 async function fetchWithRetry(id, opts, log) {
@@ -126,7 +186,7 @@ function errorData(group, msg) {
 function buildCSV(results) {
   const rows = [CSV_HEADERS.join(',')];
   results.forEach((r) => {
-    const vals = [
+    const vals = r.linhaBase ? r.linhaBase : [
       r.id, r.dataColeta, r.nomeInformado, r.situacao, r.lider, r.viceLider,
       r.ultimoEnvio, r.anoFormacao, r.area, r.instituicao, r.unidade, r.contato,
       r.pesquisadores, r.pesquisadoresNomes, r.estudantes, r.tecnicos,
@@ -156,8 +216,36 @@ async function main() {
     groups.length = opts.limit;
   }
 
-  const queue = [...groups];
   const results = [];
+  let queue = [...groups];
+  if (opts.base) {
+    if (!fs.existsSync(opts.base)) {
+      console.error(`ERRO: CSV base não encontrado: ${opts.base}`);
+      process.exit(1);
+    }
+    let base;
+    try {
+      base = loadBase(fs.readFileSync(opts.base, 'utf-8'), opts.maxIdadeDias);
+    } catch (e) {
+      console.error(`ERRO: ${e.message}`);
+      process.exit(1);
+    }
+    queue = [];
+    for (const g of groups) {
+      const linha = base.get(g.id);
+      if (linha) {
+        // O nome vem sempre da lista atual (pode ter mudado no SUAP).
+        const linhaBase = [...linha];
+        linhaBase[CSV_HEADERS.indexOf('Nome Base')] = g.nome;
+        results.push({ id: g.id, linhaBase });
+      } else {
+        queue.push(g);
+      }
+    }
+    log(`Modo incremental: ${results.length} grupo(s) reaproveitado(s) de ${opts.base} ` +
+        `(coleta com menos de ${opts.maxIdadeDias} dia(s)); ${queue.length} a buscar no DGP.`);
+  }
+
   let done = 0;
   let failures = 0;
   const total = queue.length;
@@ -196,6 +284,7 @@ async function main() {
 
   const elapsed = Math.round((Date.now() - startedAt) / 1000);
   const success = total - failures;
+  const reaproveitados = results.length - total;
 
   // Ordena pela ordem original da lista (não pela ordem de término)
   const order = new Map(groups.map((g, i) => [g.id, i]));
@@ -204,7 +293,8 @@ async function main() {
   const csv = buildCSV(results);
   fs.writeFileSync(opts.out, csv, 'utf-8');
 
-  console.log(`\n✓ ${success}/${total} grupos coletados (${failures} erro(s)) em ${elapsed}s`);
+  console.log(`\n✓ ${success}/${total} grupos coletados (${failures} erro(s)) em ${elapsed}s` +
+              (opts.base ? ` + ${reaproveitados} reaproveitado(s)` : ''));
   console.log(`  CSV: ${opts.out}`);
   if (failures > 0) {
     console.error(`\n⚠ ${failures} grupo(s) falharam — verifique os registros com Situação = mensagem de erro no CSV.`);
@@ -212,7 +302,11 @@ async function main() {
   }
 }
 
-main().catch((e) => {
-  console.error('Erro fatal:', e);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((e) => {
+    console.error('Erro fatal:', e);
+    process.exit(1);
+  });
+}
+
+module.exports = { parseCSV, parseDataColeta, loadBase, buildCSV, readGroups, CSV_HEADERS };
