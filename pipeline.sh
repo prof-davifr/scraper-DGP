@@ -17,6 +17,7 @@
 #   ./pipeline.sh                  # roda tudo (precisa suap/.env)
 #   ./pipeline.sh --skip-suap      # reusa a lista já gerada (não loga no SUAP)
 #   ./pipeline.sh --commit         # após rodar, faz git add/commit/push nos 2 repos
+#                                  # (sincroniza com o remoto antes; aborta se divergir)
 #   ./pipeline.sh --dashboard DIR  # caminho alternativo do dashboard
 #
 set -euo pipefail
@@ -40,6 +41,47 @@ done
 
 echo "=== Pipeline DGP → dashboard ==="
 echo "dashboard: $DASHBOARD"
+
+# ── Sincronização com o remoto (só com --commit) ─────────────────────────────
+# Os dois repos recebem commits automáticos: a lista vem do agendamento local
+# (`scripts/atualizar-lista.sh`) e o `data.json` vem do workflow semanal do
+# dashboard. Commitar em cima de um clone desatualizado gera push rejeitado, ou
+# um rebase manual que desfaz a rodada automática. Por isso o pipeline só segue
+# com os clones iguais ao remoto, e confere de novo antes de commitar.
+sincronizar() {
+  local repo="$1" nome="$2"
+  echo "    $nome: git pull --ff-only"
+  if ! git -C "$repo" pull --ff-only --quiet; then
+    echo "ERRO: $nome não avança só por fast-forward (commits locais divergentes" >&2
+    echo "      ou alterações locais em conflito). Resolva à mão e rode de novo." >&2
+    exit 1
+  fi
+  conferir_remoto "$repo" "$nome"
+}
+
+# Falha se o clone difere do remoto (por exemplo, se o remoto andou durante a
+# execução). Não tenta rebase: no dashboard, o outro commit é quase sempre a
+# rodada automática regravando o mesmo `data.json`.
+conferir_remoto() {
+  local repo="$1" nome="$2"
+  if ! git -C "$repo" fetch --quiet; then
+    echo "ERRO: $nome: git fetch falhou. Nada foi commitado." >&2
+    exit 1
+  fi
+  if [[ "$(git -C "$repo" rev-parse HEAD)" != "$(git -C "$repo" rev-parse '@{u}')" ]]; then
+    echo "ERRO: $nome: o clone local difere do remoto (commit local não enviado," >&2
+    echo "      ou o remoto mudou durante a execução, provavelmente pela rodada" >&2
+    echo "      automática). Nada foi commitado. Sincronize e rode de novo." >&2
+    exit 1
+  fi
+}
+
+if [[ "$DO_COMMIT" == "true" ]]; then
+  echo
+  echo "── Sincronizando com o remoto (--commit) ─────────────────"
+  sincronizar "$ROOT" "scraper-DGP"
+  sincronizar "$DASHBOARD" "dashboard"
+fi
 
 # ── 1. Lista de grupos (SUAP) ────────────────────────────────────────────────
 if [[ "$SKIP_SUAP" == "false" ]]; then
@@ -88,17 +130,32 @@ if [[ "$DO_COMMIT" == "true" ]]; then
   echo
   echo "── Commit/push ───────────────────────────────────────────"
   DATE="$(date +%F)"
+  conferir_remoto "$ROOT" "scraper-DGP"
+  conferir_remoto "$DASHBOARD" "dashboard"
+  FALHOU=false
   (
     cd "$ROOT"
     git add "lista de grupos de pesquisa.txt" suap cli pipeline.sh package.json package-lock.json .gitignore
-    git commit -m "dados: lista de grupos + pipeline DGP ($DATE)" || echo "  (scraper-DGP: nada a commitar)"
-    git push || echo "  (scraper-DGP: push falhou)"
-  )
+    if git diff --cached --quiet; then
+      echo "  (scraper-DGP: nada a commitar)"
+    else
+      git commit -m "dados: lista de grupos + pipeline DGP ($DATE)" \
+        && git push
+    fi
+  ) || { echo "ERRO: scraper-DGP: commit/push falhou." >&2; FALHOU=true; }
   (
     cd "$DASHBOARD"
     git add data.json
-    git commit -m "dados: atualiza grupos de pesquisa ($DATE)" || echo "  (dashboard: nada a commitar)"
-    git push || echo "  (dashboard: push falhou)"
-  )
-  echo "Commit/push concluído (verifique as mensagens acima)."
+    if git diff --cached --quiet; then
+      echo "  (dashboard: nada a commitar)"
+    else
+      git commit -m "dados: atualiza grupos de pesquisa ($DATE)" \
+        && git push
+    fi
+  ) || { echo "ERRO: dashboard: commit/push falhou." >&2; FALHOU=true; }
+  if [[ "$FALHOU" == "true" ]]; then
+    echo "Commit/push incompleto (veja os erros acima)." >&2
+    exit 1
+  fi
+  echo "Commit/push concluído."
 fi

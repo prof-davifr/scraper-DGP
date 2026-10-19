@@ -106,7 +106,11 @@ SUAP (lista de grupos) → DGP/CNPq (detalhes) → dashboard-prpgi (data.json)
 | 3. Pipeline completo | `npm run pipeline` | Encadeia 1→2→copia CSV→`npm run build`+`validate`+`test` no dashboard |
 
 `pipeline.sh` aceita `--skip-suap` (reusa a lista, não loga), `--dashboard DIR`
-e `--commit` (git add/commit/push nos dois repos após rodar).
+e `--commit` (git add/commit/push nos dois repos após rodar). Com `--commit`, o
+script faz `git pull --ff-only` nos dois repos antes de começar e confere de novo
+antes de commitar: se o clone divergir do remoto (por exemplo, porque a rodada
+automática do dashboard commitou o `data.json` no meio da execução), ele aborta
+sem commitar.
 
 O CSV bruto contém **PII** (nomes/contatos) e **não é versionado**; apenas o
 `data.json` anonimizado e a `lista de grupos` (só ID + nome) vão ao git.
