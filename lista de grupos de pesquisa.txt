@@ -21,8 +21,8 @@
 9814589582429761	Ecologia, Saúde e Meio Ambiente
 1019575033095118	Educação da atenção - cotidianos, de(s)colonialidades e corpos em movimentos
 5622817566227151	Educação e Tecnologias - GPETec
-7975014917514202	Educação, Linguagens e Práxis Pedagógica
 1677076250644328	Educação, Linguagens e Práxis Pedagógica
+7975014917514202	Educação, Linguagens e Práxis Pedagógica
 5699535759509595	Educação, Tecnologias e Dinâmica territoriais no Baixo Sul da Bahia
 2916945746237197	Eficiência Energética, Saúde e Segurança do Trabalho, Construção Civil e Tecnologias Limpas
 3675044329414826	ELiPor - Estudos da Língua Portuguesa: descrição e ensino
@@ -99,6 +99,7 @@
 4609244742074414	Grupo de Pesquisa em Engenharia Química Aplicada
 9336521533067155	Grupo de Pesquisa em Engenharia, Saúde, Meio Ambiente, Segurança e Educação - GPESMSE
 1142307301313023	Grupo de Pesquisa em Ensino de Física e Física - GPEFF
+6118548063847052	Grupo de Pesquisa em Ensino de Física e Física - GPEFF
 1964145107271857	Grupo de Pesquisa em Ensino e Aprendizagem de Matemática da Costa do Dendê
 3049643849107860	Grupo de Pesquisa em Estudos Afro-Indígenas, Tecnologia, Educação e Ciência - AfroITEC
 5318098280865540	Grupo de Pesquisa em Estudos Linguísticos, Tradução e Acessibilidade - LINTRA
@@ -141,8 +142,8 @@
 4106092913964594	JaComp - Grupo de pesquisa em computação de Jacobina
 6710202519554469	Laboratório de Comunicação e Cultura Digital
 9710168357498093	LABORATÓRIO DE EDUCAÇÃO STEAM MAKER
-9892012455616022	Laboratório de Estudos Brasil Profundo
 2049621618132544	Laboratório de Estudos Brasil Profundo
+9892012455616022	Laboratório de Estudos Brasil Profundo
 9374633814153348	Laboratório de Gestão, Negócios Inovadores, Tecnologias e Observatório do Trabalho - LAGETRAB
 9898980153483335	Laboratório de Inovação e Práticas Interdisciplinares
 3233612600019404	Laboratório de Pesquisa da Educação Profissional - LaPEP
