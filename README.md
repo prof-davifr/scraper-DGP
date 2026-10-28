@@ -28,6 +28,7 @@ https://prof-davifr.github.io/coletor-dgp
   * Técnicos
   * Instituições parceiras
   * INCTs parceiras
+* Nomes dos **pesquisadores, estudantes e técnicos** atuais (sem os egressos)
 * Extração das **linhas de pesquisa** do grupo
 * Registro da **data de coleta**
 * Sistema de **retry automático para falhas**

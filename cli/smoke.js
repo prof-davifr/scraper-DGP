@@ -50,6 +50,11 @@ check('RH pesquisadores=8', () => assert.strictEqual(data.pesquisadores, 8));
 check('RH estudantes=7', () => assert.strictEqual(data.estudantes, 7));
 check('Contato', () => assert.strictEqual(data.contato, 'aristides@ifba.edu.br'));
 check('Nomes contêm o líder', () => assert.ok(data.pesquisadoresNomes.includes('Jeferson Gabriel')));
+check('7 nomes de estudantes (= RH)', () =>
+  assert.strictEqual(data.estudantesNomes.split('; ').length, data.estudantes, data.estudantesNomes));
+// Sem técnico, a tabela de membros fica vazia; o título "Técnicos" se repete na
+// de indicadores, que não pode vazar para cá.
+check('sem técnicos → nomes vazios', () => assert.strictEqual(data.tecnicosNomes, ''));
 
 // 1b. Fixture de um grupo Certificado (ativo): exercita técnicos, instituições
 // parceiras e linhas de pesquisa, que o grupo Excluído acima não tem.
@@ -69,6 +74,15 @@ if (fs.existsSync(certPath)) {
     check('[cert] RH pesquisadores=20', () => assert.strictEqual(cert.pesquisadores, 20));
     check('[cert] RH estudantes=14', () => assert.strictEqual(cert.estudantes, 14));
     check('[cert] RH técnicos=1', () => assert.strictEqual(cert.tecnicos, 1));
+    check('[cert] 20 nomes de pesquisadores, não os egressos', () =>
+      assert.strictEqual(cert.pesquisadoresNomes.split('; ').length, 20));
+    check('[cert] 14 nomes de estudantes, não os 101 egressos', () => {
+      const nomes = cert.estudantesNomes.split('; ');
+      assert.strictEqual(nomes.length, 14, cert.estudantesNomes);
+      assert.ok(nomes.includes('Anna Victoria Alves da Silva'), cert.estudantesNomes);
+    });
+    check('[cert] nome do técnico', () =>
+      assert.strictEqual(cert.tecnicosNomes, 'Carina Soares do Nascimento'));
     check('[cert] Instituições parceiras=3', () => assert.strictEqual(cert.instParceiras, 3));
     check('[cert] INCTs parceiras=0', () => assert.strictEqual(cert.inctsParceiras, 0));
     check('[cert] 7 linhas de pesquisa', () => {
@@ -101,6 +115,24 @@ if (fs.existsSync(certPath)) {
     assert.deepStrictEqual([...loadBase(csv, 7, agora).keys()], ['1111111111111111']));
   check('[incremental] idade maior inclui a coleta antiga', () =>
     assert.deepStrictEqual([...loadBase(csv, 30, agora).keys()], ['1111111111111111', '3333333333333333']));
+  check('[csv] cada campo cai na sua coluna', () => {
+    const r = { id: '4444444444444444', estudantes: 2, estudantesNomes: 'Ana; Bia', tecnicos: 1,
+      tecnicosNomes: 'Caio', linhasPesquisa: 'Catálise' };
+    const [cab, lin] = parseCSV(buildCSV([r]));
+    const valor = (coluna) => lin[cab.indexOf(coluna)];
+    assert.strictEqual(valor('ID'), r.id);
+    assert.strictEqual(valor('Estudantes'), '2');
+    assert.strictEqual(valor('Estudantes (Nomes)'), 'Ana; Bia');
+    assert.strictEqual(valor('Técnicos (Nomes)'), 'Caio');
+    assert.strictEqual(valor('Linhas de Pesquisa'), 'Catálise');
+  });
+  // assets/app.js exporta o mesmo CSV pela versão web; a ordem não pode divergir.
+  check('[csv] app.js usa a mesma ordem de colunas', () => {
+    const app = fs.readFileSync(path.join(ROOT, 'assets', 'app.js'), 'utf-8');
+    const bloco = app.slice(app.indexOf('const CSV_COLUNAS'), app.indexOf('];', app.indexOf('const CSV_COLUNAS')));
+    const colunas = [...bloco.matchAll(/\['([^']+)', '[^']+'\]/g)].map((m) => m[1]);
+    assert.deepStrictEqual(colunas, CSV_HEADERS);
+  });
   check('[incremental] recusa CSV de outro formato', () =>
     assert.throws(() => loadBase('﻿ID,Nome\n"1","a"', 7, agora), /cabeçalho/));
 }

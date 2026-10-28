@@ -467,6 +467,8 @@ function parseCSV(lines) {
     const ipIdx         = idx('Instituições Parceiras');
     const inIdx         = idx('INCTs Parceiras');
     const linhasIdx     = idx('Linhas de Pesquisa');
+    const esNomesIdx    = idx('Estudantes (Nomes)');
+    const teNomesIdx    = idx('Técnicos (Nomes)');
 
     for (let i = 1; i < lines.length; i++) {
         const parts = splitCSVLine(lines[i]);
@@ -495,6 +497,8 @@ function parseCSV(lines) {
             instParceiras:    parseInt(clean(ipIdx))  || 0,
             inctsParceiras:   parseInt(clean(inIdx))  || 0,
             linhasPesquisa:   clean(linhasIdx),
+            estudantesNomes:  clean(esNomesIdx),
+            tecnicosNomes:    clean(teNomesIdx),
             error: clean(situacaoIdx).includes('\u26A0\uFE0F')
         };
         currentGroups.push({ id: data.id, nome: data.nomeInformado });
@@ -673,6 +677,8 @@ async function fetchGroupData(id) {
                 contato:           getContatoGrupo(doc),
                 ...getRHCounts(doc),
                 pesquisadoresNomes: getResearcherNames(doc),
+                estudantesNomes:   getMemberNames(doc, 'Estudantes'),
+                tecnicosNomes:     getMemberNames(doc, 'Técnicos'),
                 instParceiras:     getPartnershipCount(doc, 'Instituições parceiras'),
                 inctsParceiras:    getPartnershipCount(doc, 'INCTs parceiras'),
                 linhasPesquisa:    getLinhasPesquisa(doc),
@@ -695,16 +701,24 @@ function getUnidadeValue(doc) {
     return getFieldValue(doc, 'Unidade:');
 }
 
-function getResearcherNames(doc) {
-    const spans = Array.from(doc.querySelectorAll('th span'));
-    const span  = spans.find(s => s.textContent.trim() === 'Pesquisadores' && s.closest('table'));
-    if (!span) return 'N/A';
-    const table = span.closest('table');
+// Membros atuais de uma categoria de "Recursos humanos". A página repete o
+// título nas tabelas de egressos e de indicadores; só a de membros atuais abre
+// com o título e tem "Data inclusão" (ver cli/parser.js).
+function getMemberNames(doc, titulo) {
+    const table = Array.from(doc.querySelectorAll('table')).find(t => {
+        const heads = Array.from(t.querySelectorAll('thead th')).map(th => th.textContent.trim());
+        return heads[0] === titulo && heads.includes('Data inclusão');
+    });
+    if (!table) return 'N/A';
     const rows  = table.querySelectorAll('tbody tr:not(.ui-datatable-empty-message)');
     return Array.from(rows).map(row => {
         const cell = row.querySelector('td');
         return cell ? cell.textContent.trim() : '';
     }).filter(n => n).join('; ');
+}
+
+function getResearcherNames(doc) {
+    return getMemberNames(doc, 'Pesquisadores');
 }
 
 function getFieldValue(doc, labelText) {
@@ -835,7 +849,8 @@ function createErrorData(group, msg) {
         anoFormacao: '?', ultimoEnvio: '?', dataSituacao: '?',
         lider: '?', viceLider: '?', area: '?', instituicao: '?', unidade: '?', contato: '?',
         pesquisadores: 0, estudantes: 0, tecnicos: 0, instParceiras: 0, inctsParceiras: 0,
-        pesquisadoresNomes: '?', linhasPesquisa: '?', dataColeta: '-'
+        pesquisadoresNomes: '?', linhasPesquisa: '?', dataColeta: '-',
+        estudantesNomes: '?', tecnicosNomes: '?'
     };
 }
 
@@ -845,7 +860,8 @@ function createWaitingData(group) {
         anoFormacao: '-', ultimoEnvio: '-', dataSituacao: '-',
         lider: '-', viceLider: '-', area: '-', instituicao: '-', unidade: '-', contato: '-',
         pesquisadores: 0, estudantes: 0, tecnicos: 0, instParceiras: 0, inctsParceiras: 0,
-        pesquisadoresNomes: '-', linhasPesquisa: '-', dataColeta: '-'
+        pesquisadoresNomes: '-', linhasPesquisa: '-', dataColeta: '-',
+        estudantesNomes: '-', tecnicosNomes: '-'
     };
 }
 
@@ -1093,21 +1109,35 @@ function showToast(msg, type = 'info') {
 }
 
 // ---- Export ----
+// Mesma ordem de CSV_COLUNAS em cli/coletar.js; os dois geram o mesmo arquivo.
+const CSV_COLUNAS = [
+    ['ID', 'id'],
+    ['Nome Base', 'nomeInformado'],
+    ['Data Coleta', 'dataColeta'],
+    ['Situação', 'situacao'],
+    ['Ano Formação', 'anoFormacao'],
+    ['Último Envio', 'ultimoEnvio'],
+    ['Área', 'area'],
+    ['Instituição', 'instituicao'],
+    ['Unidade', 'unidade'],
+    ['Líder', 'lider'],
+    ['Vice-Líder', 'viceLider'],
+    ['Contato', 'contato'],
+    ['Pesquisadores', 'pesquisadores'],
+    ['Pesquisadores (Nomes)', 'pesquisadoresNomes'],
+    ['Estudantes', 'estudantes'],
+    ['Estudantes (Nomes)', 'estudantesNomes'],
+    ['Técnicos', 'tecnicos'],
+    ['Técnicos (Nomes)', 'tecnicosNomes'],
+    ['Instituições Parceiras', 'instParceiras'],
+    ['INCTs Parceiras', 'inctsParceiras'],
+    ['Linhas de Pesquisa', 'linhasPesquisa']
+];
+
 function buildCSV(data) {
-    const headers = [
-        'ID','Data Coleta','Nome Base','Situação','Líder','Vice-Líder',
-        'Último Envio','Ano Formação','Área','Instituição','Unidade','Contato',
-        'Pesquisadores','Pesquisadores (Nomes)','Estudantes','Técnicos',
-        'Instituições Parceiras','INCTs Parceiras','Linhas de Pesquisa'
-    ];
-    const rows = [headers.join(',')];
+    const rows = [CSV_COLUNAS.map(([coluna]) => coluna).join(',')];
     data.forEach(r => {
-        const vals = [
-            r.id, r.dataColeta, r.nomeInformado, r.situacao, r.lider, r.viceLider,
-            r.ultimoEnvio, r.anoFormacao, r.area, r.instituicao, r.unidade, r.contato,
-            r.pesquisadores, r.pesquisadoresNomes, r.estudantes, r.tecnicos,
-            r.instParceiras, r.inctsParceiras, r.linhasPesquisa
-        ];
+        const vals = CSV_COLUNAS.map(([, campo]) => r[campo]);
         rows.push(vals.map(v => '"' + String(v || '').replace(/"/g, '""') + '"').join(','));
     });
     return '\uFEFF' + rows.join('\n');

@@ -10,23 +10,36 @@
 
 ## Dados Coletados
 
+Colunas na ordem do CSV (`CSV_COLUNAS` em `cli/coletar.js`; `assets/app.js`
+repete a lista e `cli/smoke.js` confere que as duas são iguais):
+
 | Campo | Descrição |
 |-------|-----------|
 | ID | Identificador de 16 dígitos do grupo |
 | Nome Base | Nome do grupo de pesquisa |
+| Data Coleta | Data e hora da coleta do grupo |
 | Situação | Certificado/Excluído |
-| Líder(es) | Nome do líder do grupo |
-| Vice-Líder | Nome do vice-líder |
-| Último Envio | Data do último envio ao CNPq |
 | Ano Formação | Ano de formação do grupo |
+| Último Envio | Data do último envio ao CNPq |
 | Área | Área predominante |
 | Instituição | Instituição do grupo |
 | Unidade | Unidade/campus |
+| Líder | Nome do líder do grupo |
+| Vice-Líder | Nome do vice-líder |
+| Contato | E-mail de contato do grupo |
 | Pesquisadores | Quantidade de pesquisadores |
+| Pesquisadores (Nomes) | Nomes dos pesquisadores atuais, separados por `;` |
 | Estudantes | Quantidade de estudantes |
+| Estudantes (Nomes) | Nomes dos estudantes atuais, separados por `;` |
 | Técnicos | Quantidade de técnicos |
+| Técnicos (Nomes) | Nomes dos técnicos atuais, separados por `;` |
 | Instituições Parceiras | Quantidade de parceiras |
+| INCTs Parceiras | Quantidade de INCTs parceiros |
 | Linhas de Pesquisa | Linhas de pesquisa cadastradas |
+
+Os nomes vêm só da tabela de membros atuais; egressos e indicadores ficam de
+fora. O modo incremental (`--base`) recusa CSV com outra ordem de colunas,
+inclusive os gerados antes de 28/10/2026.
 
 ## Formato de Entrada
 

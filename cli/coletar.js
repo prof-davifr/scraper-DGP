@@ -33,12 +33,35 @@ const USER_AGENT =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
   '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 
-const CSV_HEADERS = [
-  'ID', 'Data Coleta', 'Nome Base', 'Situação', 'Líder', 'Vice-Líder',
-  'Último Envio', 'Ano Formação', 'Área', 'Instituição', 'Unidade', 'Contato',
-  'Pesquisadores', 'Pesquisadores (Nomes)', 'Estudantes', 'Técnicos',
-  'Instituições Parceiras', 'INCTs Parceiras', 'Linhas de Pesquisa',
+// Coluna do CSV → campo do objeto de resultado. A ordem desta lista é a ordem
+// do arquivo: identificação, situação, classificação e local, liderança,
+// membros (cada contagem ao lado dos nomes) e parcerias; as linhas de
+// pesquisa, o texto mais longo, ficam por último. Os consumidores (build do
+// dashboard, assets/app.js, scraper-prpgi) leem pelo nome da coluna.
+const CSV_COLUNAS = [
+  ['ID', 'id'],
+  ['Nome Base', 'nomeInformado'],
+  ['Data Coleta', 'dataColeta'],
+  ['Situação', 'situacao'],
+  ['Ano Formação', 'anoFormacao'],
+  ['Último Envio', 'ultimoEnvio'],
+  ['Área', 'area'],
+  ['Instituição', 'instituicao'],
+  ['Unidade', 'unidade'],
+  ['Líder', 'lider'],
+  ['Vice-Líder', 'viceLider'],
+  ['Contato', 'contato'],
+  ['Pesquisadores', 'pesquisadores'],
+  ['Pesquisadores (Nomes)', 'pesquisadoresNomes'],
+  ['Estudantes', 'estudantes'],
+  ['Estudantes (Nomes)', 'estudantesNomes'],
+  ['Técnicos', 'tecnicos'],
+  ['Técnicos (Nomes)', 'tecnicosNomes'],
+  ['Instituições Parceiras', 'instParceiras'],
+  ['INCTs Parceiras', 'inctsParceiras'],
+  ['Linhas de Pesquisa', 'linhasPesquisa'],
 ];
+const CSV_HEADERS = CSV_COLUNAS.map(([coluna]) => coluna);
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -179,19 +202,14 @@ function errorData(group, msg) {
     anoFormacao: '?', ultimoEnvio: '?', dataSituacao: '?',
     lider: '?', viceLider: '?', area: '?', instituicao: '?', unidade: '?', contato: '?',
     pesquisadores: 0, estudantes: 0, tecnicos: 0, instParceiras: 0, inctsParceiras: 0,
-    pesquisadoresNomes: '?', linhasPesquisa: '?',
+    pesquisadoresNomes: '?', linhasPesquisa: '?', estudantesNomes: '?', tecnicosNomes: '?',
   };
 }
 
 function buildCSV(results) {
   const rows = [CSV_HEADERS.join(',')];
   results.forEach((r) => {
-    const vals = r.linhaBase ? r.linhaBase : [
-      r.id, r.dataColeta, r.nomeInformado, r.situacao, r.lider, r.viceLider,
-      r.ultimoEnvio, r.anoFormacao, r.area, r.instituicao, r.unidade, r.contato,
-      r.pesquisadores, r.pesquisadoresNomes, r.estudantes, r.tecnicos,
-      r.instParceiras, r.inctsParceiras, r.linhasPesquisa,
-    ];
+    const vals = r.linhaBase ? r.linhaBase : CSV_COLUNAS.map(([, campo]) => r[campo]);
     rows.push(vals.map((v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(','));
   });
   return '\uFEFF' + rows.join('\n');

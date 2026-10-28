@@ -57,11 +57,22 @@ function getUnidadeValue(doc) {
   return getFieldValue(doc, 'Unidade:');
 }
 
-function getResearcherNames(doc) {
-  const spans = Array.from(doc.querySelectorAll('th span'));
-  const span = spans.find((s) => s.textContent.trim() === 'Pesquisadores' && s.closest('table'));
-  if (!span) return 'N/A';
-  const table = span.closest('table');
+/**
+ * Nomes dos membros atuais de uma categoria de "Recursos humanos"
+ * ('Pesquisadores', 'Estudantes' ou 'Técnicos').
+ *
+ * A página tem até três tabelas com o mesmo título: os membros atuais, os
+ * egressos ("Período de participação no grupo") e os indicadores por formação.
+ * Só a de membros atuais abre com o título e tem a coluna "Data inclusão"; sem
+ * essa conferência, um grupo sem a tabela de técnicos devolveria "Doutorado;
+ * Mestrado; ..." da tabela de indicadores.
+ */
+function getMemberNames(doc, titulo) {
+  const table = Array.from(doc.querySelectorAll('table')).find((t) => {
+    const heads = Array.from(t.querySelectorAll('thead th')).map((th) => th.textContent.trim());
+    return heads[0] === titulo && heads.includes('Data inclusão');
+  });
+  if (!table) return 'N/A';
   const rows = table.querySelectorAll('tbody tr:not(.ui-datatable-empty-message)');
   return Array.from(rows)
     .map((row) => {
@@ -70,6 +81,10 @@ function getResearcherNames(doc) {
     })
     .filter((n) => n)
     .join('; ');
+}
+
+function getResearcherNames(doc) {
+  return getMemberNames(doc, 'Pesquisadores');
 }
 
 function getContatoGrupo(doc) {
@@ -155,6 +170,8 @@ function parseGroupPage(html) {
     contato: getContatoGrupo(doc),
     ...getRHCounts(doc),
     pesquisadoresNomes: getResearcherNames(doc),
+    estudantesNomes: getMemberNames(doc, 'Estudantes'),
+    tecnicosNomes: getMemberNames(doc, 'Técnicos'),
     instParceiras: getPartnershipCount(doc, 'Instituições parceiras'),
     inctsParceiras: getPartnershipCount(doc, 'INCTs parceiras'),
     linhasPesquisa: getLinhasPesquisa(doc),
@@ -168,6 +185,7 @@ module.exports = {
   getLideresArray,
   getRHCounts,
   getResearcherNames,
+  getMemberNames,
   getContatoGrupo,
   getPartnershipCount,
   getLinhasPesquisa,
